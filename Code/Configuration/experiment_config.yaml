@@ -1,0 +1,7 @@
+experiment:
+  charge_current_mA: 60
+  voltage_limit_V: 4.1
+  num_steps: 20
+
+safety:
+  max_temperature_C: 26

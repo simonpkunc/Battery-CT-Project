@@ -1,0 +1,1 @@
+This folder contains all source code (actual implementation). All implementation logic is separated into modules (**Devices**, **Experiment**, **Logging** and **Safety**).

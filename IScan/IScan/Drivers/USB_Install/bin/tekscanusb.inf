@@ -1,0 +1,127 @@
+; ----------------------------------------------------------
+; TekscanUSB.inf
+;
+; Installation file (.inf) for the Tekscan USB Device Driver
+;
+; (c) Copyright 2009 Tekscan
+;
+; ----------------------------------------------------------
+
+
+[Version]
+signature="$CHICAGO$"
+Class=USB
+Provider=%Tekscan%
+DriverVer=11/13/2009,2.7.1s.0
+Class=%ClassName%
+ClassGUID={ff646f80-8def-11d2-9449-00105a075f6b}
+DriverPackageDisplayName="USB Driver"
+CatalogFile=tekscanusb.cat
+
+;[ClassInstall]
+;AddReg=TekscanClass_AddReg
+
+[ClassInstall32]
+AddReg=TekscanClass_AddReg
+
+[TekscanClass_AddReg]
+HKR,,,,%ClassName%
+;HKR,,NoInstallClass,,1
+
+[SourceDisksNames.x86]
+1 = %DiskId1%,,,
+
+[SourceDisksFiles]
+; Files for disk Tekscan Inc. Installation Disk #1
+;TekscanUsb.sys = 1,,
+TekscanUsb.sys = 1,i386
+
+
+[Manufacturer]
+%Tekscan%=Tekscan
+
+;[PreCopySection]
+;HKR,,NoSetupUI,,1
+
+[DestinationDirs]
+DefaultDestDir   = 12
+TekscanUsb.Files.Ext = 10,System32\Drivers
+
+[Tekscan]
+; This is the device entry for the datalogger device after firmware
+; download and ReNumeration.  It just uses TekscanUsb driver
+%USB\VID_11DA&PID_0082.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_0082
+
+; This is the Nitta parallel/Usb device
+%USB\VID_0B7E&PID_8001.DeviceDesc%=TekscanUsb.Dev, USB\VID_0B7E&PID_8001
+
+;This is the device after the EEPROM update code has been installed
+%USB\VID_11DA&PID_0080.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_0080
+
+;This is the device after the EEPROM update code has been installed
+%USB\VID_11DA&PID_0040.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_0040
+
+;If the datalogger gets wiped, it shows up as 0000, 0000
+%USB\VID_0000&PID_0000.DeviceDesc%=TekscanUsb.Dev, USB\VID_0000&PID_0000
+
+;this is the Tekscan USB handle (evolution)
+%USB\VID_11DA&PID_0010.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_0010
+
+;this is the Tekscan Handheld USB handle
+%USB\VID_11DA&PID_0011.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_0011
+
+;this is the Tekscan Genesis handle (Versa-Tek)
+%USB\VID_11DA&PID_0019.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_0019
+
+;this is the Versa-Tek hub
+%USB\VID_11DA&PID_001A.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_001A
+
+;this is the 8-port Versa-Tek hub
+%USB\VID_11DA&PID_001B.DeviceDesc%=TekscanUsb.Dev, USB\VID_11DA&PID_001B
+
+[ControlFlags]
+ExcludeFromSelect=* ; removes all device here from the device installer list
+
+[TekscanUsb.Dev]
+CopyFiles=TekscanUsb.Files.Ext
+AddReg=TekscanUsb.AddReg
+
+[TekscanUsb.Dev.NT]
+CopyFiles=TekscanUsb.Files.Ext
+AddReg=TekscanUsb.AddReg
+
+[TekscanUsb.Dev.NT.Services]
+Addservice = TekscanUsb, 0x00000002, TekscanUsb.AddService
+
+[TekscanUsb.AddService]
+DisplayName    = %TekscanUsb.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 1                  ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %10%\System32\Drivers\TekscanUsb.sys
+
+[TekscanUsb.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,TekscanUsb.sys
+
+[TekscanUsb.Files.Ext]
+TekscanUsb.sys
+
+
+[Strings]
+Tekscan="Tekscan"
+USB\VID_0B7E&PID_8001.DeviceDesc="Tekscan Parallel/USB handle (TekscanUsb.sys)"
+TekscanUsb.SvcDesc="Tekscan General Purpose USB Driver (TekscanUsb.sys)"
+USB\VID_11DA&PID_0080.DeviceDesc="Tekscan Mobile Device EEPROM write"
+USB\VID_11DA&PID_0081.DeviceDesc = "Tekscan Unprogrammed USB Mobile Device"
+USB\VID_11DA&PID_0082.DeviceDesc="Tekscan Programmed USB Mobile Device"
+USB\VID_11DA&PID_0040.DeviceDesc="Tekscan parallel to USB"
+DataLoggerUsbLdr.SvcDesc="Tekscan Datalogger programming driver (DataLoggerUsbLdr.sys)"
+ClassName = "Tekscan Sensor Device"
+DiskId1 = "Tekscan Inc. Installation Disk"
+USB\VID_0000&PID_0000.DeviceDesc="Erased Tekscan device"
+USB\VID_11DA&PID_0010.DeviceDesc="Tekscan USB Handle"
+USB\VID_11DA&PID_0011.DeviceDesc="Tekscan Handheld USB Handle"
+USB\VID_11DA&PID_0019.DeviceDesc="Tekscan Genesis Handle"
+USB\VID_11DA&PID_001A.DeviceDesc="Tekscan VersaTek 2-port Hub"
+USB\VID_11DA&PID_001B.DeviceDesc="Tekscan VersaTek 8-port Hub"

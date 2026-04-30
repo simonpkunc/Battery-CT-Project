@@ -1,0 +1,158 @@
+; spr_wdm.inf
+;
+; Installation file (.inf) for the PCI Super Recevier device.
+;
+; (c) Copyright 2002 Tekscan Inc. 
+;
+
+[Version]
+Signature="$Windows NT$"
+Provider=%Tekscan%
+Class=%ClassName%
+ClassGUID={ff646f80-8def-11d2-9449-00105a075f6b}
+DriverVer=03/11/2003,0.5.0.18
+
+[ClassInstall]
+AddReg=TekscanDevice_AddReg
+
+[ClassInstall32]
+AddReg=TekscanDevice_AddReg
+
+[ControlFlags]
+;ExcludeFromSelect=PCI\VEN_10B5&DEV_9061&SUBSYS_00000000
+
+[TekscanDevice_AddReg]
+HKR,,,,%ClassName%
+;HKR,,NoInstallClass,,1
+
+;
+; Driver information
+;
+
+[DestinationDirs]
+DefaultDestDir=12
+CopyNtFiles = 12
+Copy95Vxd=11
+Copy95Inf=17
+
+[Manufacturer]
+%Tekscan%   = Tekscan.Mfg
+
+[Tekscan.Mfg]
+%Tekscan.DeviceDesc0% = PciSrWdm, PCI\VEN_10B5&DEV_9061&SUBSYS_00000000
+
+
+; Windows 95/98 - entry details follow NT statements
+[PciSrWdm]
+DriverVer=08/23/2001,0.4.0.50
+CopyFiles=Copy95Vxd, Copy95Inf
+AddReg=SPR-4_95_RegEntries,PCI_BusNumber,PCI_SlotNumber,SPR-4_95.Params
+LogConfig=SPR-4_95
+
+; NT (2000 and XP)
+[PciSrWdm.nt]
+DriverVer=03/19/2002,0.5.0.11
+CopyFiles=CopyNtFiles
+
+
+[CopyNtFiles]
+PciSrWdm.sys
+
+;
+; Service Installation
+;
+
+[PciSrWdm.nt.Services]
+AddService = PciSrWdm, 0x00000002 , PciSrWdm_Service_Inst
+
+[PciSrWdm_Service_Inst]
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+ServiceBinary  = %12%\PciSrWdm.sys
+
+;Win 95 install entries
+[Copy95Vxd]
+tlw32vxd.vxd
+
+[Copy95Inf]
+spr_wdm.inf
+
+[SPR-4_95_RegEntries]
+HKR,,DeviceVxDs,0,Tlw32vxd.vxd
+HKR,,FileName,0,spr_wdm.inf
+
+[PCI_BusNumber]
+HKR,params\BusNumber,ParamDesc,0,AdapterPCIBusNumber
+HKR,params\BusNumber,type,0,int
+HKR,params\BusNumber,default,0,0
+HKR,params\BusNumber,min,0,0
+HKR,params\BusNumber,max,0,255
+HKR,params\BusNumber,step,0,1
+HKR,params\BusNumber,optional,0,1
+HKR,params\BusNumber,flag,1,30,00,00,00
+
+[PCI_SlotNumber]
+HKR,params\Slot,ParamDesc,0,AdapterPCISlotNumber
+HKR,params\Slot,type,0,int
+HKR,params\Slot,default,0,1
+HKR,params\Slot,min,0,0
+HKR,params\Slot,max,0,31
+HKR,params\Slot,step,0,1
+HKR,params\Slot,flag,1,30,00,00,00
+HKR,params\Slot,optional,0,1
+
+[SPR-4_95.Params]
+HKR,,IOAddress,1,02,00,00,00
+HKR,params\IOAddress,resc,1,02,00,00,00
+HKR,params\IOAddress,ParamsDesc,0,I/OBaseAddress
+HKR,params\IOAddress,flag,1,30,00,00,00
+HKR,,Interrupt,1,04,00,00,00
+HKR,params\Interrupt,resc,1,04,00,00,00
+HKR,params\Interrupt,ParamsDesc,0,InterruptLevel
+HKR,params\Interrupt,flag,1,20,00,00,00
+
+[SPR-4_95]
+ConfigPriority=POWEROFF
+MemConfig=80@a0000000-ffffffff%ffffff80,100000@a0000000-ffffffff%fff00000
+IOConfig=80@a000-ffff%ff80(ffff::)
+IRQConfig=S:10
+
+
+
+;
+; Source file information
+;
+
+[SourceDisksNames.x86]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+; Files for disk Tekscan Inc. Installation Disk #1
+PciSrWdm.sys = 1,,
+tlw32drv.sys = 1,,
+tlw32vxd.vxd=1
+spr_wdm.inf=1
+
+
+[Strings]
+
+;
+; Non-Localizable Strings
+;
+
+REG_SZ         = 0x00000000
+REG_MULTI_SZ   = 0x00010000
+REG_EXPAND_SZ  = 0x00020000
+REG_BINARY     = 0x00000001
+REG_DWORD      = 0x00010001
+SERVICEROOT    = "System\CurrentControlSet\Services"
+
+;
+; Localizable Strings
+;
+
+Tekscan.DeviceDesc0 = "PCI Super Recevier"
+DiskId1 = "Tekscan Inc. Installation Disk"
+Tekscan = "Tekscan Inc."
+ClassName = "Tekscan Sensor Device"

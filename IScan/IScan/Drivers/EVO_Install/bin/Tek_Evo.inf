@@ -1,0 +1,146 @@
+; TEK_EVO.INF
+; Copyright (c) 2000-2009 FTDI Ltd.
+; Modified for Tekscan hardware by Tekscan Inc
+;
+; USB serial converter driver installation for Windows 2000, XP, Server 2003, Vista, Server 2008 (x86 and x64).
+;
+
+[Version]
+Signature="$Windows NT$"
+DriverPackageType=PlugAndPlay
+DriverPackageDisplayName=%DESC%
+;Class=USB
+Class=%ClassName%
+ClassGUID={ff646f80-8def-11d2-9449-00105a075f6b}
+Provider=%TEKSCAN%
+CatalogFile=TekscanEVO.cat
+DriverVer=02/17/2009,6.2.0416
+
+
+[ClassInstall32]
+AddReg=TekscanClass_AddReg
+
+[ClassInstall32.NTamd64]
+AddReg=TekscanClass_AddReg
+
+[TekscanClass_AddReg]
+HKR,,,,%ClassName%
+
+
+[SourceDisksNames]
+1=%DriversDisk%,,,
+
+[SourceDisksFiles]
+ftdibus.sys = 1,i386
+ftbusui.dll = 1,i386
+ftd2xx.dll = 1,i386
+FTLang.Dll = 1,i386
+
+[SourceDisksFiles.amd64]
+ftdibus.sys = 1,amd64
+ftbusui.dll = 1,amd64
+ftd2xx64.dll = 1,amd64
+ftd2xx.dll = 1,i386
+FTLang.Dll = 1,amd64
+
+[DestinationDirs]
+FtdiBus.NT.Copy = 10,system32\drivers
+FtdiBus.NT.Copy2 = 10,system32
+FtdiBus.NTamd64.Copy = 10,system32\drivers
+FtdiBus.NTamd64.Copy2 = 10,system32
+FtdiBus.NTamd64.Copy3 = 10,syswow64
+
+
+[Manufacturer]
+%TEKSCAN%=FtdiHw,NTamd64
+
+[FtdiHw]
+%USB\VID_11DA&PID_0020.DeviceDesc32%=FtdiBus.NT, USB\VID_11DA&PID_0020
+%USB\VID_11DA&PID_0028.DeviceDesc%=FtdiBus.NT, USB\VID_11DA&PID_0028
+%USB\VID_11DA&PID_0018&MI_00.DeviceDesc%=FtdiBus.NT, USB\VID_11DA&PID_0018&MI_00
+%USB\VID_11DA&PID_0018&MI_01.DeviceDesc%=FtdiBus.NT, USB\VID_11DA&PID_0018&MI_01
+
+[FtdiHw.NTamd64]
+%USB\VID_11DA&PID_0020.DeviceDesc64%=FtdiBus.NTamd64, USB\VID_11DA&PID_0020
+%USB\VID_11DA&PID_0028.DeviceDesc%=FtdiBus.NTamd64, USB\VID_11DA&PID_0028
+%USB\VID_11DA&PID_0018&MI_00.DeviceDesc%=FtdiBus.NTamd64, USB\VID_11DA&PID_0018&MI_00
+%USB\VID_11DA&PID_0018&MI_01.DeviceDesc%=FtdiBus.NTamd64, USB\VID_11DA&PID_0018&MI_01
+
+[ControlFlags]
+ExcludeFromSelect=*
+
+[FtdiBus.NT]
+CopyFiles=FtdiBus.NT.Copy,FtdiBus.NT.Copy2
+AddReg=FtdiBus.NT.AddReg
+
+[FtdiBus.NTamd64]
+CopyFiles=FtdiBus.NTamd64.Copy,FtdiBus.NTamd64.Copy2,FtdiBus.NTamd64.Copy3
+AddReg=FtdiBus.NT.AddReg
+
+[FtdiBus.NT.Services]
+AddService = FTDIBUS, 0x00000002, FtdiBus.NT.AddService
+
+[FtdiBus.NTamd64.Services]
+AddService = FTDIBUS, 0x00000002, FtdiBus.NT.AddService
+
+[FtdiBus.NT.AddService]
+DisplayName = %SvcDesc%
+ServiceType = 1 ; SERVICE_KERNEL_DRIVER
+StartType = 3 ; SERVICE_DEMAND_START
+ErrorControl = 1 ; SERVICE_ERROR_NORMAL
+ServiceBinary = %10%\system32\drivers\ftdibus.sys
+LoadOrderGroup = Base
+AddReg = FtdiBus.NT.AddService.AddReg
+
+[FtdiBus.NT.AddReg]
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,ftdibus.sys
+HKR,,EnumPropPages32,,"ftbusui.dll,FTBUSUIPropPageProvider"
+
+[FtdiBus.NT.AddService.AddReg]
+;HKR,Parameters,"LocIds",1,31,00,00,00,32,00,00,00,00
+;HKR,Parameters,"RetryResetCount",0x10001,50
+
+
+
+; Explicitly disable exposing a COM port
+; [Setting Bit 2 to 1 (4 decimal) enables exposure of the VCP]
+; Now setting it to 16 (0x00000010), the default value currently set by our device if no ConfiGData section is used.
+;---------------------------------------
+[FtdiBus.NT.HW]
+AddReg=FtdiBus.NT.HW.AddReg
+[FtdiBus.NTamd64.HW]
+AddReg=FtdiBus.NT.HW.AddReg
+[FtdiBus.NT.HW.AddReg]
+HKR,,"ConfigData",0x00010001,16
+
+[FtdiBus.NT.Copy]
+ftdibus.sys
+
+[FtdiBus.NT.Copy2]
+ftbusui.dll
+ftd2xx.dll
+FTLang.dll
+
+[FtdiBus.NTamd64.Copy]
+ftdibus.sys
+
+[FtdiBus.NTamd64.Copy2]
+ftbusui.dll
+ftd2xx.dll,ftd2xx64.dll
+FTLang.dll
+
+[FtdiBus.NTamd64.Copy3]
+ftd2xx.dll
+
+[Strings]
+Tekscan="Tekscan"
+DESC="Evolution Driver"
+DriversDisk="Tekscan Drivers Disk"
+ClassName = "Tekscan Sensor Device"
+SvcDesc="Tekscan Evolution Driver"
+USB\VID_11DA&PID_0020.DeviceDesc32="Tekscan Evolution"
+USB\VID_11DA&PID_0020.DeviceDesc64="Tekscan Evolution (64bit)"
+USB\VID_11DA&PID_0028.DeviceDesc="Tekscan Seat Sensor"
+USB\VID_11DA&PID_0018&MI_00.DeviceDesc="Genesis Channel A"
+USB\VID_11DA&PID_0018&MI_01.DeviceDesc="Genesis Channel B"
