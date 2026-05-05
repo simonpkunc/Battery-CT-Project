@@ -6,3 +6,6 @@ Tuesday 5/5
 * Did a scan with Marios.
 * Spook with Calle about a potentiostat.
 * Mailed Malte about artefacts in my image.
+* Mailed Alfredo about cycling a cell with a C-rate > 1.
+* Mailed with Gian Marco about picking up the potentiostat.
+* Mailed Calle about the potentiostat.
