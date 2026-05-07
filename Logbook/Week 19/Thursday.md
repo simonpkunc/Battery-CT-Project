@@ -5,3 +5,4 @@ Thursday 7/5
 * Emailed Malte about the new design.
 * Emailed with Alexander about access during the summer.
 * Downloaded the software for the potentiostat and got it working on my computer.
+* Ordered cabels to the potentiostat.
