@@ -5,3 +5,4 @@ Monday 11/5
 * Picked up a package containing connectioncables to the cell.
 * Went to the garage and attached crimp terminals to the cables.
 * Worked on V5.
+* Mailed Monica about labaccess during the summer.
