@@ -1,0 +1,17 @@
+﻿Report Name: C:\Users\simon\OneDrive\Skrivbord\Skolan\MEX (SE202X)\Battery-CT-Project\Holder\CAD\Versioner\V5\report.txt
+Report Time: 2026-05-11 13:47:04
+Report Options:
+    Part Names
+
+Select Set #1:
+    Bottenplatta.par:1
+
+Select Set #2:
+    Vertikal pelare batteri.par:1
+
+Interferences:
+    1 of 1
+    Bottenplatta.par:1
+    Vertikal pelare batteri.par:1
+
+    1 Interferences Detected
