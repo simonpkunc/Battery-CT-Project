@@ -11,11 +11,7 @@ Do not make the image to dark or to bright.
 
 Use preview first and compare with the original. Do not apply aggressive filtering since it can blur or artificially enhance the electrode/separator layers. If the filtered image starts to look "painted" or too sharp, the filter is to strong.
 
-3) **Identify a representative region/slice**
-
-Find an area where the layer structure is clear, continuous and not dominated by artefacts. Use this as a reference region for learning the workflow and for later comparisons. **Reason:** a representative region makes it easier to compare different scans later. Avoid regions near cropped edges, strong artefacts or areas where the structure is unclear.
-
-4) **Validate the volume by scrolling/cine mode in all planes**
+3) **Validate the volume by scrolling/cine mode in all planes**
 
 Scroll/play through the full volume in **XY**, **XZ** and **YZ** to verify the continuity, consistency and realistic geometry. What to check:
 
@@ -26,6 +22,10 @@ Scroll/play through the full volume in **XY**, **XZ** and **YZ** to verify the c
 
 **Reason:** a CT scan may look correct in a single slice but still contain artefacts or import issues. Reviewing the full volume helps confirm that the dataset is physically meaningful and suitable for analysis.
 
-5) **Identify a representative baseline region**
+4) **Identify a representative baseline region (20-30 slices)**
 
-Choose a region with clear and consistent battery structure to use as a reference for later comparison between scans/cycles. **Reason:** a healthy reference region makes it easier to identify degradation or structural changes later.
+Find an area where the layer structure is clear, continuous and minimally affected by artefacts. Use this as a reference region for later comparison. **Reason:** a representative region makes comparisons between scans/cycles more reproducible.
+
+5) **Perform a first simple measurement**
+
+Measure something simple (e.g. local stack thickness, spacing between visible layers, feature width etc.) **Reason:** confirms voxel scaling and creates a quantitative baseline.
