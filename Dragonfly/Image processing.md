@@ -29,3 +29,13 @@ Find an area where the layer structure is clear, continuous and minimally affect
 5) **Perform a first simple measurement**
 
 Measure something simple (e.g. local stack thickness, spacing between visible layers, feature width etc.) **Reason:** confirms voxel scaling and creates a quantitative baseline.
+
+6) **Identify repeating layer patterns**
+
+Zoom in on a representative region and describe the repeating grayscale pattern before assigning material labels. Pattern observed in the test image: thin brigh line --> thin dark line --> wider gray region --> thin dark line --> thin bright line --> thin dark line --> **REPEAT**.
+
+**REASON:** describing the pattern first avoids guessing material identities to early. Material labels such as anode, cathode, separator or current collector should only be assigned after checking the pattern across several slices and ideally, comparing with known cell construction.
+
+7) **Look for local anomalies or non-uniformities**
+
+Inspect the volume for local irregularities such as layer separation, unusual spacing, wrinkles, density changes or discontinuities. **Reason:** a healthy baseline scan should show consistent and continuous layer structures. Identifying what "normal" looks like makes later degradation easier to detect.
