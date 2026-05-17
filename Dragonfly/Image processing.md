@@ -1,41 +1,102 @@
-1) **Adjust the histogram (window leveling)**
-Do not make the image to dark or to bright.
+**Dragonfly CT workflow**
 
-    - If the iamge is **to dark**, low-contrast details in the electrode/separator structure may disappear ("black clipping").
-    - If the image is **to bright**, bright regions may saturate and structural information can be lost ("white clipping").
-    - The goal is to make the layers visible **without over-enhancing the contrast** or losing grayscale information.
+1) **Open the dataset/session**
 
-    **Rule of thumb:** the layers should be clear, but the image should still look natural - not overly contrasted.
+    - open the .ORSSession or dataset.
+    - verify that the correct volume is loaded.
+    - confirm that the volume orientation looks reasonable.
 
-2) **Test mild filtering only if needed**
+2) **Adjust window leveling (histogram)**
 
-Use preview first and compare with the original. Do not apply aggressive filtering since it can blur or artificially enhance the electrode/separator layers. If the filtered image starts to look "painted" or too sharp, the filter is to strong.
+    - turn on **Log Y**.
+    - adjust the histogram usng the yellow limits.
+    - make the layer structure visible **without clipping information**.
 
-3) **Validate the volume by scrolling/cine mode in all planes**
+    **Avoid**
+    - too dark --> loss of low-contrast detail (**black clipping**)
+    - too bright --> saturation of bright regions (**white clipping**)
+    
+    **Rule of thumb:** layers should be clear but still look natural.
 
-Scroll/play through the full volume in **XY**, **XZ** and **YZ** to verify the continuity, consistency and realistic geometry. What to check:
+3) **Check dataset properties**
 
+    Go to **Basic properties** and note
+    - voxel size.
+    - dimensions.
+    - bit depth (16-bit/32-bit)
+
+    **Reason:** needed later for measurements and comparisons.
+
+4) **Validate the volume (cine/scroll)**
+
+    Scroll through the volume in
+    - XY.
+    - XZ.
+    - YZ.
+
+    Look for
     - continuous layer structure.
-    - gradual geometric changes between slices.
+    - gradual changes between slices.
     - no sudden jumps or broken structures.
-    - no obvious import artefacts or corrupted regions.
+    - no corrupted regions or import artefacts.
 
-**Reason:** a CT scan may look correct in a single slice but still contain artefacts or import issues. Reviewing the full volume helps confirm that the dataset is physically meaningful and suitable for analysis.
+    **Rule of thumb:** if it looks physically consistent while scrolling, the volume is likely valid.
 
-4) **Identify a representative baseline region (20-30 slices)**
+5) **Test filtering (optional)**
 
-Find an area where the layer structure is clear, continuous and minimally affected by artefacts. Use this as a reference region for later comparison. **Reason:** a representative region makes comparisons between scans/cycles more reproducible.
+    Only if needed.
 
-5) **Perform a first simple measurement**
+    **Image processing panel --> Advanced**. Use **Preview first** and compare with original.
 
-Measure something simple (e.g. local stack thickness, spacing between visible layers, feature width etc.) **Reason:** confirms voxel scaling and creates a quantitative baseline.
+    **Recommended mindset:** apply the weakest filter that improves readability.
 
-6) **Identify repeating layer patterns**
+    Avoid
+    - over-smoothing.
+    - "painted" appearance.
+    - artificial sharpening.
 
-Zoom in on a representative region and describe the repeating grayscale pattern before assigning material labels. Pattern observed in the test image: thin brigh line --> thin dark line --> wider gray region --> thin dark line --> thin bright line --> thin dark line --> **REPEAT**.
+    **Important:** always filter a **copy/new dataset**, never the original.
 
-**REASON:** describing the pattern first avoids guessing material identities to early. Material labels such as anode, cathode, separator or current collector should only be assigned after checking the pattern across several slices and ideally, comparing with known cell construction.
+6) **Find a representative region**
 
-7) **Look for local anomalies or non-uniformities**
+    Choose a region
+    - with clear layer structure.
+    - minimal artefacts.
+    - consistent geometry.
 
-Inspect the volume for local irregularities such as layer separation, unusual spacing, wrinkles, density changes or discontinuities. **Reason:** a healthy baseline scan should show consistent and continuous layer structures. Identifying what "normal" looks like makes later degradation easier to detect.
+    Avoid
+    - edges.
+    - cropped regions.
+    - noisy/distorted.
+
+    **Tip:** use the crosshair to stay in the same physical location across views.
+
+7) **Inspect repeating layer pattern**
+
+    Zoom in and identify the repeating grayscale structure.
+
+    Example from testscan: thin bright line --> thin dark line --> wider gray region --> thin dark line --> thin bright line --> thin dark line --> **REPEAT**.
+
+    **Important:** do not assign material labels (anode/cathode/separator/current collector) too early.
+
+8) **Perform a first simple measurement**
+
+    Measure something simple
+    - local stack thickness.
+    - layer spacing.
+    - feature width.
+
+    **Purpose:** verify voxel scaling and establish a baseline.
+
+9) **Save representative screenshots**
+
+    Save
+    - overview image.
+    - representative slice.
+    - zoomed layer structure.
+
+    Document
+    - voxel size.
+    - histogram settings.
+    - slice range.
+    - filtering used (if any).
