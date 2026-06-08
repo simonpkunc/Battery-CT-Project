@@ -10,7 +10,7 @@ from email.message import EmailMessage
 PORT = "COM7"
 BAUD = 115200
 
-TEMP_LIMIT_C = 25.0  # Ändra denna till din gränstemperatur
+TEMP_LIMIT_C = 25.0  # Ändra denna för att ändra gränstemperaturen.
 
 EMAIL_ENABLED = True
 
