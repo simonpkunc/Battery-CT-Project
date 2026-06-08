@@ -1,9 +1,0 @@
-pc_timestamp,arduino_line,temperature_C,alarm
-2026-06-08 | 15:13:24.808,Time [s]: 2740.0 | RTD raw: 8340 | Resistance [ohm]: 109.442 | Temperature [C]: 24.25,24.25,
-2026-06-08 | 15:13:24.809,Time [s]: 2741.1 | RTD raw: 8340 | Resistance [ohm]: 109.442 | Temperature [C]: 24.25,24.25,
-2026-06-08 | 15:13:25.866,Time [s]: 2742.3 | RTD raw: 8340 | Resistance [ohm]: 109.442 | Temperature [C]: 24.25,24.25,
-2026-06-08 | 15:13:27.018,Time [s]: 2743.4 | RTD raw: 8341 | Resistance [ohm]: 109.455 | Temperature [C]: 24.25,24.25,
-2026-06-08 | 15:13:28.172,Time [s]: 2744.6 | RTD raw: 8340 | Resistance [ohm]: 109.442 | Temperature [C]: 24.25,24.25,
-2026-06-08 | 15:13:29.322,Time [s]: 2745.7 | RTD raw: 8339 | Resistance [ohm]: 109.429 | Temperature [C]: 24.28,24.28,
-2026-06-08 | 15:13:30.476,Time [s]: 2746.9 | RTD raw: 8340 | Resistance [ohm]: 109.442 | Temperature [C]: 24.25,24.25,
-2026-06-08 | 15:13:31.628,Time [s]: 2748.0 | RTD raw: 8339 | Resistance [ohm]: 109.429 | Temperature [C]: 24.25,24.25,
