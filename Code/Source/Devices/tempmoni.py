@@ -5,11 +5,10 @@ import re
 import smtplib
 import ssl
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 from datetime import datetime
 from email.message import EmailMessage
-
-load_dotenv()
 
 PORT = "COM7"
 BAUD = 115200
@@ -18,10 +17,15 @@ TEMP_LIMIT_C = 25.0  # Ändra denna för att ändra gränstemperaturen.
 
 EMAIL_ENABLED = True
 
+env_path = Path(__file__).with_name("emailinfo.env")
+load_dotenv(env_path)
+
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
 RECEIVER_EMAIL = os.getenv("RECEIVER_EMAIL")
 
+if not SENDER_EMAIL or not SENDER_PASSWORD or not RECEIVER_EMAIL:
+    raise RuntimeError("Email settings could not be loaded. Check emailinfo.env.")
 
 def send_temperature_alarm(temperature, line, pc_time):
     subject = "Temperature alarm - battery CT experiment"
@@ -46,7 +50,10 @@ The Python logging script has stopped.
     context = ssl.create_default_context()
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        server.login(
+            SENDER_EMAIL.strip(),
+            SENDER_PASSWORD.replace(" ", "").strip()
+        )
         server.send_message(msg)
 
 
