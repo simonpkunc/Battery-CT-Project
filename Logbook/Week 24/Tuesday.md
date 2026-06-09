@@ -1,4 +1,4 @@
 Tuesday 9/6
 
-* Recalibrated the pressure sensor.
+* Tried to recalibrate the pressure sensor.
 * 
