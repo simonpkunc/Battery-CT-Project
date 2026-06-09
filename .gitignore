@@ -4,3 +4,4 @@
 *.pdf
 emailinfo.env
 Code/emailinfo.env
+*.pyc
