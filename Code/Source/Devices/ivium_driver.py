@@ -5,9 +5,7 @@ import ctypes
 from ctypes import c_long, c_double, byref
 from pathlib import Path
 
-
 DLL_PATH = r"C:\IviumStat\Software Development Driver\IVIUM_remdriver64.dll"
-
 
 class IviumDriver:
     def __init__(self, dll_path: str):
@@ -46,6 +44,15 @@ class IviumDriver:
         self.dll.IV_abort.restype = c_long
         self.dll.IV_abort.argtypes = []
 
+        # Status functions
+        self.dll.IV_getdevicestatus.restype = c_long
+
+        self.dll.IV_getcellstatus.restype = c_long
+        self.dll.IV_getcellstatus.argtypes = [ctypes.POINTER(c_long)]
+
+        self.dll.IV_StatusParGet.restype = c_long
+        self.dll.IV_StatusParGet.argtypes = [ctypes.POINTER(c_long)]
+
     def open(self) -> int:
         return self.dll.IV_open()
 
@@ -60,7 +67,7 @@ class IviumDriver:
         value = c_double()
         result = self.dll.IV_getpotential(byref(value))
 
-        # Return code 3 appears while a method is running, but the values are still valid.
+        # Return code 3 appears while a method is running, but values are still valid.
         if result not in (0, 3):
             print("Warning: IV_getpotential returned:", result)
 
@@ -70,9 +77,30 @@ class IviumDriver:
         value = c_double()
         result = self.dll.IV_getcurrent(byref(value))
 
-        # Return code 3 appears while a method is running, but the values are still valid.
+        # Return code 3 appears while a method is running, but values are still valid.
         if result not in (0, 3):
             print("Warning: IV_getcurrent returned:", result)
+
+        return value.value
+
+    def get_device_status(self) -> int:
+        return self.dll.IV_getdevicestatus()
+
+    def get_cell_status(self) -> int:
+        value = c_long()
+        result = self.dll.IV_getcellstatus(byref(value))
+
+        if result not in (0, 3):
+            print("Warning: IV_getcellstatus returned:", result)
+
+        return value.value
+
+    def get_status_parameter(self) -> int:
+        value = c_long()
+        result = self.dll.IV_StatusParGet(byref(value))
+
+        if result not in (0, 3):
+            print("Warning: IV_StatusParGet returned:", result)
 
         return value.value
 
@@ -89,7 +117,6 @@ class IviumDriver:
     def set_connection_mode(self, on: bool) -> int:
         value = c_long(1 if on else 0)
         return self.dll.IV_setconnectionmode(byref(value))
-
 
 def replace_line(data: bytes, key: bytes, value: bytes, required: bool = True) -> bytes:
     lines = data.splitlines(keepends=True)
@@ -110,7 +137,6 @@ def replace_line(data: bytes, key: bytes, value: bytes, required: bool = True) -
         raise ValueError(f"Could not find line starting with {key.decode('ascii')!r}")
 
     return data
-
 
 def create_cycle_imf(
     template_path: str,
@@ -147,7 +173,6 @@ def create_cycle_imf(
     data = replace_line(data, b"Tasks.I[2]=", f"{discharge_current_uA:g}".encode("ascii"))
     data = replace_line(data, b"Tasks.E<[2]=", f"{lower_voltage_v:g}".encode("ascii"))
 
-    # Make sure current units are uA if these lines exist.
     data = replace_line(data, b"Tasks.Iunit[1]=", b"uA", required=False)
     data = replace_line(data, b"Tasks.Iunit[2]=", b"uA", required=False)
 
@@ -156,7 +181,6 @@ def create_cycle_imf(
 
     return str(output_path)
 
-
 def run_cycle_test(
     method_path: str,
     log_path: str,
@@ -164,11 +188,6 @@ def run_cycle_test(
     safety_abs_voltage_v: float = 3.0,
     safety_abs_current_a: float = 0.001,
 ) -> None:
-    """
-    Starts a generated Ivium method, logs E/I, and aborts after max_runtime_s.
-
-    This is still a dummy-load test function.
-    """
     method_path = str(Path(method_path).resolve())
     log_path = Path(log_path).resolve()
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -196,24 +215,65 @@ def run_cycle_test(
 
     start_time = time.time()
 
+    method_was_running = False
+
     try:
         with open(log_path, "w", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow(["time_s", "potential_V", "current_A"])
+            writer.writerow(
+                [
+                    "time_s",
+                    "potential_V",
+                    "current_A",
+                    "device_status",
+                    "cell_status",
+                    "status_parameter",
+                ]
+            )
             file.flush()
 
             while True:
                 elapsed = time.time() - start_time
+
                 voltage = ivium.get_potential()
                 current = ivium.get_current()
 
-                writer.writerow([elapsed, voltage, current])
+                device_status = ivium.get_device_status()
+                cell_status = ivium.get_cell_status()
+                status_parameter = ivium.get_status_parameter()
+
+                if device_status == 2:
+                    method_was_running = True
+
+                if method_was_running and device_status != 2:
+                    print("Ivium method no longer running.")
+                    print("Assuming method was completed or aborted.")
+                    break
+
+                if method_was_running and cell_status == 0:
+                    print("Ivium cell is off.")
+                    print("Assuming method was completed or aborted.")
+                    break
+
+                writer.writerow(
+                    [
+                        elapsed,
+                        voltage,
+                        current,
+                        device_status,
+                        cell_status,
+                        status_parameter,
+                    ]
+                )
                 file.flush()
 
                 print(
                     f"t={elapsed:6.1f} s | "
                     f"E={voltage: .4f} V | "
-                    f"I={current: .6f} A"
+                    f"I={current: .6f} A | "
+                    f"dev={device_status} | "
+                    f"cell={cell_status} | "
+                    f"stat={status_parameter}"
                 )
 
                 if abs(voltage) > safety_abs_voltage_v:
@@ -240,7 +300,6 @@ def run_cycle_test(
         print("Close:", ivium.close())
         print(f"Data saved to: {log_path}")
 
-
 if __name__ == "__main__":
     script_folder = Path(__file__).resolve().parent
 
@@ -254,23 +313,26 @@ if __name__ == "__main__":
     generated_file = config_folder / "generated_ivium_cycle.imf"
     log_file = script_folder / "ivium_cycle_test_log.csv"
 
-    # Short dummy-load test settings.
+    # Abort-status test with dummy load.
+    #
     # With 9.97 kOhm:
-    # +150 uA should give about +1.50 V.
-    # -150 uA should give about -1.50 V.
+    # +150 uA gives about +1.50 V.
+    #
+    # upper_voltage_v=2.0 means Task 1 will keep running and not finish immediately.
+    # This gives you time to press Abort in IviumSoft and watch dev/cell/stat change.
     generated_method = create_cycle_imf(
-    template_path=str(template_file),
-    output_path=str(generated_file),
-    charge_current_uA=150,
-    discharge_current_uA=-150,
-    upper_voltage_v=1.2,
-    lower_voltage_v=-2.0,
-)
+        template_path=str(template_file),
+        output_path=str(generated_file),
+        charge_current_uA=150,
+        discharge_current_uA=-150,
+        upper_voltage_v=4.0,
+        lower_voltage_v=-2.0,
+    )
 
-run_cycle_test(
-    method_path=generated_method,
-    log_path=str(log_file),
-    max_runtime_s=15,
-    safety_abs_voltage_v=3.0,
-    safety_abs_current_a=0.001,
-)
+    run_cycle_test(
+        method_path=generated_method,
+        log_path=str(log_file),
+        max_runtime_s=30,
+        safety_abs_voltage_v=4.0,
+        safety_abs_current_a=0.001,
+    )
