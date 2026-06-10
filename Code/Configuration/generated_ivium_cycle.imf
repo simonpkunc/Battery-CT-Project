@@ -1,0 +1,296 @@
+Version= 15
+Method=Transients
+Technique=CycliScan
+Dconfig=0
+AutoSign=false
+Title=Scan 1
+Redefine filename=false
+BCcontrol=
+BCcontrol.CurmaxShutoff=false
+BCcontrol.Curmax=6
+BCcontrol.EmaxShutoff=false
+BCcontrol.Emax=10
+BCcontrol.EminShutoff=false
+BCcontrol.Emin=-10
+BCcontrol.Ext1maxShutoff=false
+BCcontrol.Ext1max=10
+BCcontrol.Ext1minShutoff=false
+BCcontrol.Ext1min=-10
+BCcontrol.TempmaxShutoff=false
+BCcontrol.Tempmax=85
+BCcontrol.QmaxShutoff=false
+BCcontrol.Qmax=1
+BCcontrol.Shutoffdelay=1
+BCcontrol.Edelta=true
+BCcontrol.Edeltavalue=0.002
+BCcontrol.Idelta=true
+BCcontrol.Ideltavalue=0.2
+BCcontrol.tdelta=true
+BCcontrol.tdeltavalue=10
+BCcontrol.Qdelta=false
+BCcontrol.Qdeltavalue=0.001
+BCcontrol.Crate=1
+BCcontrol.CrateUnit=1
+BCcontrol.Area=2
+BCcontrol.AreaUnit=1
+BCcontrol.Density=0
+BCcontrol.DensityUnit=1
+BCcontrol.ActiveMass=0
+BCcontrol.ActiveMassUnit=1
+BCcontrol.Device=0
+BCcontrol.Model=0
+BCcontrol.Options=0
+BCcontrol.XErange=false
+BCcontrol.pModule=0
+BCcontrol.cModule=0
+BCcontrol.EIStime=0.2
+BCcontrol.ProfileEquation=(0.5-abs(X-0.5))*Sin(25*Pi*X)
+BCcontrol.ProfileWaveForm=0
+BCcontrol.ProfileAmpli=0.5
+BCcontrol.ProfilePoints=32
+BCcontrol.Ca=1
+BCcontrol.Cb=1
+Profile=0.0156250.031250.0468750.06250.0781250.093750.1093750.1250.1406250.156250.1718750.18750.2031250.218750.2343750.250.2656250.281250.2968750.31250.3281250.343750.3593750.3750.3906250.406250.4218750.43750.4531250.468750.4843750.5
+Tasks=2
+Tasks.Loop[1]=Single
+Tasks.Mode[1]=CC
+Tasks.Par1[1]=0
+Tasks.End1[1]=E>
+Tasks.End2[1]=select
+Tasks.End3[1]=select
+Tasks.End4[1]=select
+Tasks.Option1[1]=select
+Tasks.Option2[1]=select
+Tasks.Option3[1]=select
+Tasks.Option4[1]=select
+Tasks.Cycles[1]=3
+Tasks.Tech[1]=DC
+Tasks.Label[1]=CH1:
+Tasks.Stdtech[1]=CyclicVoltamm
+Tasks.E[1]=0
+Tasks.I[1]=150
+Tasks.t_pulse[1]=1
+Tasks.E_base[1]=1
+Tasks.I_base[1]=0.01
+Tasks.t_base[1]=1
+Tasks.Zapplied[1]=10
+Tasks.Papplied[1]=0.1
+Tasks.GotoLine[1]=1
+Tasks.GotoLabel[1]=goto CH1:
+Tasks.Counter[1]=select
+Tasks.OnThres[1]=On
+Tasks.Transform[1]=select
+Tasks.SelectLevel[1]=LoopIndex
+Tasks.E end[1]=1
+Tasks.Escanrate[1]=0.1
+Tasks.I end[1]=1
+Tasks.Iscanrate[1]=0.1
+Tasks.FreqStart[1]=10000
+Tasks.FreqEnd[1]=10
+Tasks.AmpE[1]=0.01
+Tasks.AmpI[1]=0.01
+Tasks.Nfreq[1]=5
+Tasks.Duration[1]=10
+Tasks.OptionActive[1]=0
+Tasks.ThresActive[1]=0
+Tasks.Timer>[1]=10
+Tasks.I>[1]=0
+Tasks.I<[1]=0
+Tasks.E>[1]=1.2
+Tasks.E<[1]=1
+Tasks.Zabs>[1]=1
+Tasks.Zabs<[1]=1
+Tasks.An1>[1]=1
+Tasks.An1<[1]=1
+Tasks.|dE/dt|>[1]=0.1
+Tasks.|dE/dt|<[1]=0.1
+Tasks.|dI/dt|>[1]=0.1
+Tasks.|dI/dt|<[1]=0.1
+Tasks.An2>[1]=1
+Tasks.An2<[1]=1
+Tasks.Temp>[1]=70
+Tasks.Q>[1]=1
+Tasks.Q<[1]=1
+Tasks.AnOut1[1]=1
+Tasks.DigOuts[1]=0
+Tasks.SetMux[1]=LoopIndex
+Tasks.ExitonThres[1]=On
+Tasks.SetTimer[1]=Start
+Tasks.spi out[1]=0
+Tasks.pc exec[1]=program.exe
+Tasks.Charge to Zero[1]=On
+Tasks.Eunit[1]=V
+Tasks.Iunit[1]=uA
+Tasks.dEdtunit[1]=V/s
+Tasks.dIdtunit[1]=A/s
+Tasks.Timeunit[1]=s
+Tasks.Frequnit[1]=Hz
+Tasks.Ohmunit[1]=ohm
+Tasks.Eunitplus[1]=V
+Tasks.Eunitplus2[1]=V vs Estart
+Tasks.Qunit[1]=Coul
+Tasks.QunitPlus[1]=Coul
+Tasks.Iunitplus[1]=A
+Tasks.PapplyUnit[1]=W
+Tasks.Duraunit[1]=s
+Tasks.FrequnitE[1]=Hz
+Tasks.EunitS[1]=V
+Tasks.dEdtunitE[1]=V/s
+Tasks.dIdtunitB[1]=A/s
+Tasks.dIdtunitS[1]=A/s
+Tasks.IunitEnd[1]=A
+Tasks.IunitAmp[1]=A
+Tasks.IunitLimS[1]=A
+Tasks.IunitLimB[1]=A
+Tasks.Loop[2]=Single
+Tasks.Mode[2]=CC
+Tasks.Par1[2]=0
+Tasks.End1[2]=E<
+Tasks.End2[2]=select
+Tasks.End3[2]=select
+Tasks.End4[2]=select
+Tasks.Option1[2]=select
+Tasks.Option2[2]=select
+Tasks.Option3[2]=select
+Tasks.Option4[2]=select
+Tasks.Cycles[2]=3
+Tasks.Tech[2]=DC
+Tasks.Label[2]=DCH1:
+Tasks.Stdtech[2]=CyclicVoltamm
+Tasks.E[2]=0
+Tasks.I[2]=-150
+Tasks.t_pulse[2]=1
+Tasks.E_base[2]=1
+Tasks.I_base[2]=0.01
+Tasks.t_base[2]=1
+Tasks.Zapplied[2]=10
+Tasks.Papplied[2]=0.1
+Tasks.GotoLine[2]=1
+Tasks.GotoLabel[2]=goto CH1:
+Tasks.Counter[2]=select
+Tasks.OnThres[2]=On
+Tasks.Transform[2]=select
+Tasks.SelectLevel[2]=LoopIndex
+Tasks.E end[2]=1
+Tasks.Escanrate[2]=0.1
+Tasks.I end[2]=1
+Tasks.Iscanrate[2]=0.1
+Tasks.FreqStart[2]=10000
+Tasks.FreqEnd[2]=10
+Tasks.AmpE[2]=0.01
+Tasks.AmpI[2]=0.01
+Tasks.Nfreq[2]=5
+Tasks.Duration[2]=10
+Tasks.OptionActive[2]=0
+Tasks.ThresActive[2]=0
+Tasks.Timer>[2]=10
+Tasks.I>[2]=0
+Tasks.I<[2]=0
+Tasks.E>[2]=1
+Tasks.E<[2]=-2
+Tasks.Zabs>[2]=1
+Tasks.Zabs<[2]=1
+Tasks.An1>[2]=1
+Tasks.An1<[2]=1
+Tasks.|dE/dt|>[2]=0.1
+Tasks.|dE/dt|<[2]=0.1
+Tasks.|dI/dt|>[2]=0.1
+Tasks.|dI/dt|<[2]=0.1
+Tasks.An2>[2]=1
+Tasks.An2<[2]=1
+Tasks.Temp>[2]=70
+Tasks.Q>[2]=1
+Tasks.Q<[2]=1
+Tasks.AnOut1[2]=1
+Tasks.DigOuts[2]=0
+Tasks.SetMux[2]=LoopIndex
+Tasks.ExitonThres[2]=On
+Tasks.SetTimer[2]=Start
+Tasks.spi out[2]=0
+Tasks.pc exec[2]=program.exe
+Tasks.Charge to Zero[2]=On
+Tasks.Eunit[2]=V
+Tasks.Iunit[2]=uA
+Tasks.dEdtunit[2]=V/s
+Tasks.dIdtunit[2]=A/s
+Tasks.Timeunit[2]=s
+Tasks.Frequnit[2]=Hz
+Tasks.Ohmunit[2]=ohm
+Tasks.Eunitplus[2]=V
+Tasks.Eunitplus2[2]=V vs Estart
+Tasks.Qunit[2]=Coul
+Tasks.QunitPlus[2]=Coul
+Tasks.Iunitplus[2]=A
+Tasks.PapplyUnit[2]=W
+Tasks.Duraunit[2]=s
+Tasks.FrequnitE[2]=Hz
+Tasks.EunitS[2]=V
+Tasks.dEdtunitE[2]=V/s
+Tasks.dIdtunitB[2]=A/s
+Tasks.dIdtunitS[2]=A/s
+Tasks.IunitEnd[2]=A
+Tasks.IunitAmp[2]=A
+Tasks.IunitLimS[2]=A
+Tasks.IunitLimB[2]=A
+Cycles=1
+Cycles separate=false
+Levels separate=false
+Interval time=0.2
+TresholdHoldoff=0
+Current Range=1mA
+Potential range=4V
+Filter=automatic
+Stability=automatic
+DummyCell=0
+Detector config=0
+Calibration mode=0
+AutoCR=true
+AutoCR.Max range=1A
+AutoCR.Min range=1uA
+AutoCR.Pre ranging=true
+AccumulateCharge=false
+Data Options=
+Data Options.AnalogInputTitle=Peripheral Port
+Data Options.AnalogInputYlabel=Analog input
+Data Options.AnalogInputTitle2=Peripheral Port
+Data Options.AnalogInputYlabel2=Analog input
+Data Options.AnalogInputData=2
+Data Options.AnalogInputData.Id[1]=An In 1
+Data Options.AnalogInputData.Plot 2[1]=false
+Data Options.AnalogInputData.Id[2]=An In 2
+Data Options.AnalogInputData.Plot 2[2]=false
+Data Options.A_Transform=none
+Data Options.A_Transform2=none
+Data Options.A_A=0
+Data Options.A_B=1
+Data Options.A_C=0
+Data Options.A_D=0
+Data Options.A_A2=0
+Data Options.A_B2=1
+Data Options.A_C2=0
+Data Options.A_D2=0
+Data Options.E_correction=0
+Data Options.Area=1
+Data Options.Cap0=1E-6
+Data Options.MaxScanpoints=200000
+Data Options.Equivalent Weight=27.9
+Data Options.Density=7.86
+Data Options.Ba=0.1
+Data Options.Bc=0.1
+Data Options.Permittivity=1
+Data Options.Temperature=298
+Data Options.NominalCharge=1
+Data Options.EISfreq=5000
+Data Options.EISamp=0.025
+Data Options.CompFactor=0.85
+Data Options.AnalogInputYUnit=V
+Data Options.AnalogInputYUnit2=V
+Data Options.EISNonLinCorr=false
+AUX=false
+Anout2=false
+ITEST=false
+pdacfilter=0
+Report=
+Report.Remarks=
+Report.Process data=instrument  : B12753channel     : 0alias       : B12753software vs : 4.1234firmware vs : 1112 (1112)hw config   : CompactStat+HiSens+FRA.iP10start time  : 2026-06-10 15:23:43end time    : 2026-06-10 15:24:03endcondition: Scan AbortedSpec Rev    : 10DbFileName  : primary\Project_1\DataServer_B12753_2026-06-10_15-23-43-943.idf.sqliteDbFileMeasId: 1Step        : 0.00000E+0Interval    : 2.00000E-1
+Mconfig=0
