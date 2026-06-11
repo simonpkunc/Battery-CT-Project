@@ -121,7 +121,7 @@ def main() -> None:
         upper_voltage_v=upper_voltage_v,
         lower_voltage_v=lower_voltage_v,
         max_runtime_s=max_runtime_s,
-        startup_grace_s=3.0,
+        startup_grace_s=1.0,
         max_safe_voltage_v=max_safe_voltage_v,
         min_safe_voltage_v=min_safe_voltage_v,
         max_safe_current_a=max_safe_current_a,
