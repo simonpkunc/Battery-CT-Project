@@ -90,20 +90,20 @@ def run_battery_experiment(
         start_time = time.time()
         method_was_running = False
 
-        with open(log_path, "w", newline="") as file:
-            writer = csv.writer(file)
+        with open(log_path, "w", newline="", encoding="utf-8-sig") as file:
+            writer = csv.writer(file, delimiter=";")
 
             writer.writerow(
                 [
-                    "time_s",
-                    "potential_V",
-                    "current_A",
-                    "temperature_C",
-                    "temperature_line",
-                    "device_status",
-                    "cell_status",
-                    "status_parameter",
-                    "stop_reason",
+                    "Time [s]",
+                    "Potential [V]",
+                    "Current [A]",
+                    "Temperature [°C]",
+                    "Temperature line from Arduino",
+                    "Device status",
+                    "Cell status",
+                    "Status parameter",
+                    "Stop reason",
                 ]
             )
             file.flush()
@@ -136,66 +136,67 @@ def run_battery_experiment(
                     f"stat={status_parameter}"
                 )
 
-                writer.writerow(
-                    [
-                        elapsed,
-                        voltage,
-                        current,
-                        temperature_c,
-                        temperature_line,
-                        device_status,
-                        cell_status,
-                        status_parameter,
-                        "",
-                    ]
-                )
-                file.flush()
+                row_stop_reason = ""
 
                 if in_startup_grace:
                     print("Startup grace period active. Safety checks skipped.")
 
                 else:
                     if method_was_running and device_status != 2:
-                        stop_reason = "ivium_method_completed_or_aborted"
+                        row_stop_reason = "Aborted manually in IviumSoft."
                         print("Ivium method no longer running.")
-                        break
 
-                    if method_was_running and cell_status == 0:
-                        stop_reason = "ivium_cell_off"
+                    elif method_was_running and cell_status == 0:
+                        row_stop_reason = "Ivium cell off."
                         print("Ivium cell is off.")
-                        break
 
-                    if voltage > settings.max_safe_voltage_v:
-                        stop_reason = "max_voltage_safety_limit"
+                    elif voltage > settings.max_safe_voltage_v:
+                        row_stop_reason = "Maximum voltage safety limit reached."
                         print("Maximum voltage safety limit reached.")
                         print(f"Measured voltage was {voltage:.4f} V")
-                        break
 
-                    if voltage < settings.min_safe_voltage_v:
-                        stop_reason = "min_voltage_safety_limit"
+                    elif voltage < settings.min_safe_voltage_v:
+                        row_stop_reason = "Minimun voltage safety limit reached."
                         print("Minimum voltage safety limit reached.")
                         print(f"Measured voltage was {voltage:.4f} V")
-                        break
 
-                    if abs(current) > settings.max_safe_current_a:
-                        stop_reason = "current_safety_limit"
+                    elif abs(current) > settings.max_safe_current_a:
+                        row_stop_reason = "Current safety limit reached."
                         print("Current safety limit reached.")
                         print(f"Measured current was {current:.6f} A")
-                        break
 
-                    if (
+                    elif (
                         settings.max_temperature_c is not None
                         and temperature_c is not None
                         and temperature_c >= settings.max_temperature_c
                     ):
-                        stop_reason = "temperature_safety_limit"
+                        row_stop_reason = "Temperature safety limit reached."
                         print("Temperature safety limit reached.")
                         print(f"Measured temperature was {temperature_c:.2f} °C")
-                        break
 
-                if elapsed >= settings.max_runtime_s:
-                    stop_reason = "time_limit"
+                if row_stop_reason == "" and elapsed >= settings.max_runtime_s:
+                    row_stop_reason = "time_limit"
                     print("Time limit reached.")
+
+                if row_stop_reason != "":
+                    stop_reason = row_stop_reason
+
+                writer.writerow(
+                    [
+                        f"{elapsed:.3f}",
+                        f"{voltage:.6f}",
+                        f"{current:.9f}",
+                        "" if temperature_c is None else f"{temperature_c:.2f}",
+                        temperature_line,
+                        device_status,
+                        cell_status,
+                        status_parameter,
+                        row_stop_reason,
+                    ]
+                )
+                file.flush()
+
+                if row_stop_reason != "":
                     break
 
                 time.sleep(1)
