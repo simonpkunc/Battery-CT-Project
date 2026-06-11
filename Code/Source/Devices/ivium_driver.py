@@ -311,7 +311,7 @@ if __name__ == "__main__":
 
     template_file = config_folder / "ivium_cycle_template.imf"
 
-    generated_methods_folder = code_folder / "Data" / "generated_methods"
+    generated_methods_folder = code_folder / "Data" / "Generated methods"
     generated_methods_folder.mkdir(parents=True, exist_ok=True)
 
     generated_file = generated_methods_folder / "generated_ivium_cycle.imf"
