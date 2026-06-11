@@ -181,11 +181,11 @@ def create_cycle_imf(
 
     return str(output_path)
 
-def run_cycle_test(
+def run_ivium_cycle(
     method_path: str,
     log_path: str,
     max_runtime_s: float = 30.0,
-    safety_abs_voltage_v: float = 3.0,
+    safety_abs_voltage_v: float = 4.25,
     safety_abs_current_a: float = 0.001,
 ) -> None:
     method_path = str(Path(method_path).resolve())
@@ -310,7 +310,12 @@ if __name__ == "__main__":
     config_folder = code_folder / "Configuration"
 
     template_file = config_folder / "ivium_cycle_template.imf"
-    generated_file = config_folder / "generated_ivium_cycle.imf"
+
+    generated_methods_folder = code_folder / "Data" / "generated_methods"
+    generated_methods_folder.mkdir(parents=True, exist_ok=True)
+
+    generated_file = generated_methods_folder / "generated_ivium_cycle.imf"
+
     log_file = script_folder / "ivium_cycle_test_log.csv"
 
     # Abort-status test with dummy load.
@@ -325,14 +330,14 @@ if __name__ == "__main__":
         output_path=str(generated_file),
         charge_current_uA=150,
         discharge_current_uA=-150,
-        upper_voltage_v=4.0,
-        lower_voltage_v=-2.0,
+        upper_voltage_v=4.2,
+        lower_voltage_v=-3.0,
     )
 
-    run_cycle_test(
+    run_ivium_cycle(
         method_path=generated_method,
         log_path=str(log_file),
         max_runtime_s=30,
-        safety_abs_voltage_v=4.0,
+        safety_abs_voltage_v=4.25,
         safety_abs_current_a=0.001,
     )
