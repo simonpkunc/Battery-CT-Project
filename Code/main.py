@@ -1,11 +1,9 @@
 from datetime import datetime
 from pathlib import Path
-
 from Source.Experiment.cycling_experiment import (
     ExperimentSettings,
     run_battery_experiment,
 )
-
 
 def ask_float(prompt: str, default: float) -> float:
     user_input = input(f"{prompt} [{default}]: ").strip()
@@ -15,7 +13,6 @@ def ask_float(prompt: str, default: float) -> float:
 
     return float(user_input.replace(",", "."))
 
-
 def ask_yes_no(prompt: str, default: bool = False) -> bool:
     default_text = "y" if default else "n"
     user_input = input(f"{prompt} [y/n, default {default_text}]: ").strip().lower()
@@ -24,7 +21,6 @@ def ask_yes_no(prompt: str, default: bool = False) -> bool:
         return default
 
     return user_input in ("y", "yes", "j", "ja")
-
 
 def sanitize_filename_part(text: str, default: str = "battery_experiment") -> str:
     text = text.strip()
@@ -51,7 +47,6 @@ def sanitize_filename_part(text: str, default: str = "battery_experiment") -> st
         return default
 
     return cleaned
-
 
 def main() -> None:
     print()
@@ -98,6 +93,21 @@ def main() -> None:
 
     temperature_baud = 115200
 
+    use_tekscan = ask_yes_no("Use Tekscan recording?", default=False)
+
+    if use_tekscan:
+        print()
+        print("Tekscan checklist")
+        print("=================")
+        print("Before continuing, make sure that:")
+        print("- I-Scan is open")
+        print("- The correct sensor/map is selected")
+        print("- A New Recording / real-time window is open")
+        print("- Manual F2 starts recording")
+        print("- Manual F4 stops recording")
+        print()
+        input("Press Enter when I-Scan is ready...")
+
     code_folder = Path(__file__).resolve().parent
 
     config_folder = code_folder / "Configuration"
@@ -121,13 +131,14 @@ def main() -> None:
         upper_voltage_v=upper_voltage_v,
         lower_voltage_v=lower_voltage_v,
         max_runtime_s=max_runtime_s,
-        startup_grace_s=1.0,
+        startup_grace_s=3.0,
         max_safe_voltage_v=max_safe_voltage_v,
         min_safe_voltage_v=min_safe_voltage_v,
         max_safe_current_a=max_safe_current_a,
         temperature_port=temperature_port,
         temperature_baud=temperature_baud,
         max_temperature_c=max_temperature_c,
+        use_tekscan=use_tekscan,
         log_name=log_path.name,
     )
 
@@ -146,6 +157,7 @@ def main() -> None:
     print(f"Minimum safe voltage:        {settings.min_safe_voltage_v} V")
     print(f"Maximum safe current:        {settings.max_safe_current_a} A")
     print(f"Temperature port:            {settings.temperature_port}")
+    print(f"Use Tekscan recording:       {settings.use_tekscan}")
     print(f"Template method:             {template_method_path}")
     print(f"Generated method:            {generated_method_path}")
     print(f"Log file:                    {log_path}")
@@ -163,7 +175,6 @@ def main() -> None:
         generated_method_path=str(generated_method_path),
         log_path=str(log_path),
     )
-
 
 if __name__ == "__main__":
     main()

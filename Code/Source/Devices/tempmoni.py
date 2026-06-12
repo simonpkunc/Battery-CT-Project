@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 from email.message import EmailMessage
 from pathlib import Path
-
 import serial
 from dotenv import load_dotenv
 
@@ -139,7 +138,6 @@ Arduino line:
 
 The Python logging script has stopped.
 """
-
         msg = EmailMessage()
         msg["From"] = self.sender_email
         msg["To"] = self.receiver_email
