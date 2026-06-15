@@ -1,9 +1,15 @@
 from datetime import datetime
 from pathlib import Path
+
+from Source.Devices.ivium_driver import IviumCycleTask
 from Source.Experiment.cycling_experiment import (
     ExperimentSettings,
     run_battery_experiment,
 )
+
+
+NOMINAL_CAPACITY_MAH = 110.0
+
 
 def ask_float(prompt: str, default: float) -> float:
     user_input = input(f"{prompt} [{default}]: ").strip()
@@ -13,6 +19,16 @@ def ask_float(prompt: str, default: float) -> float:
 
     return float(user_input.replace(",", "."))
 
+
+def ask_int(prompt: str, default: int) -> int:
+    user_input = input(f"{prompt} [{default}]: ").strip()
+
+    if user_input == "":
+        return default
+
+    return int(user_input)
+
+
 def ask_yes_no(prompt: str, default: bool = False) -> bool:
     default_text = "y" if default else "n"
     user_input = input(f"{prompt} [y/n, default {default_text}]: ").strip().lower()
@@ -21,6 +37,25 @@ def ask_yes_no(prompt: str, default: bool = False) -> bool:
         return default
 
     return user_input in ("y", "yes", "j", "ja")
+
+
+def ask_task_type(task_number: int, default: str) -> str:
+    while True:
+        user_input = input(
+            f"Task {task_number} type [charge/discharge, default {default}]: "
+        ).strip().lower()
+
+        if user_input == "":
+            return default
+
+        if user_input in ("charge", "ch", "c", "laddning", "ladda"):
+            return "charge"
+
+        if user_input in ("discharge", "dch", "d", "urladdning", "urladda"):
+            return "discharge"
+
+        print("Invalid task type. Use 'charge' or 'discharge'.")
+
 
 def sanitize_filename_part(text: str, default: str = "battery_experiment") -> str:
     text = text.strip()
@@ -48,6 +83,70 @@ def sanitize_filename_part(text: str, default: str = "battery_experiment") -> st
 
     return cleaned
 
+
+def current_to_c_rate(current_mA: float) -> float:
+    return abs(current_mA) / NOMINAL_CAPACITY_MAH
+
+
+def build_tasks_from_user_input() -> list[IviumCycleTask]:
+    number_of_tasks = ask_int("Number of tasks in one cycle", 2)
+
+    if number_of_tasks < 1:
+        raise ValueError("Number of tasks must be at least 1.")
+
+    tasks = []
+
+    print()
+    print("Define tasks")
+    print("============")
+    print("Supported task types:")
+    print("- charge:    CC charge until E > voltage limit")
+    print("- discharge: CC discharge until E < voltage limit")
+    print()
+
+    for task_number in range(1, number_of_tasks + 1):
+        if task_number % 2 == 1:
+            default_type = "charge"
+        else:
+            default_type = "discharge"
+
+        task_type = ask_task_type(task_number, default=default_type)
+
+        if task_type == "charge":
+            default_current_mA = 22.0
+            default_voltage_limit_v = 4.20
+        else:
+            default_current_mA = -22.0
+            default_voltage_limit_v = 3.00
+
+        current_mA = ask_float(
+            f"Task {task_number} current [mA]",
+            default_current_mA,
+        )
+
+        if task_type == "charge":
+            current_mA = abs(current_mA)
+        else:
+            current_mA = -abs(current_mA)
+
+        voltage_limit_v = ask_float(
+            f"Task {task_number} voltage limit [V]",
+            default_voltage_limit_v,
+        )
+
+        tasks.append(
+            IviumCycleTask(
+                task_type=task_type,
+                current_mA=current_mA,
+                voltage_limit_v=voltage_limit_v,
+            )
+        )
+
+        print()
+
+    return tasks
+
+
 def main() -> None:
     print()
     print("Battery CT experiment control")
@@ -57,6 +156,7 @@ def main() -> None:
     print("- IviumSoft is open and connected")
     print("- Arduino Serial Monitor is closed")
     print("- The battery/dummy load is connected correctly")
+    print("- IviumSoft shows approximately the same voltage as the multimeter")
     print()
 
     run_setup = ask_yes_no("Start setup?", default=True)
@@ -73,18 +173,15 @@ def main() -> None:
     experiment_name_input = input("Experiment name [battery_test]: ").strip()
     experiment_name = sanitize_filename_part(experiment_name_input, default="battery_test")
 
-    charge_current_uA = ask_float("Charge current [uA]", 100.0)
-    discharge_current_uA = ask_float("Discharge current [uA]", -100.0)
+    tasks = build_tasks_from_user_input()
 
-    upper_voltage_v = ask_float("Upper voltage limit [V]", 4.20)
-    lower_voltage_v = ask_float("Lower voltage limit [V]", 3.00)
+    number_of_cycles = ask_int("Number of cycles", 1)
 
     max_temperature_c = ask_float("Maximum temperature [deg C]", 35.0)
-    max_runtime_s = ask_float("Maximum runtime [s]", 30.0)
 
     max_safe_voltage_v = ask_float("Absolute maximum safe voltage [V]", 4.25)
     min_safe_voltage_v = ask_float("Absolute minimum safe voltage [V]", 2.80)
-    max_safe_current_a = ask_float("Absolute maximum safe current [A]", 0.0005)
+    max_safe_current_a = ask_float("Absolute maximum safe current [A]", 0.15)
 
     temperature_port = input("Temperature port [COM7]: ").strip()
 
@@ -103,6 +200,8 @@ def main() -> None:
         print("- I-Scan is open")
         print("- The correct sensor/map is selected")
         print("- A New Recording / real-time window is open")
+        print("- The pressure legend / scale window is closed")
+        print("- The real-time window is active")
         print("- Manual F2 starts recording")
         print("- Manual F4 stops recording")
         print()
@@ -126,12 +225,10 @@ def main() -> None:
     log_path = logs_folder / f"{timestamp}_{experiment_name}.csv"
 
     settings = ExperimentSettings(
-        charge_current_uA=charge_current_uA,
-        discharge_current_uA=discharge_current_uA,
-        upper_voltage_v=upper_voltage_v,
-        lower_voltage_v=lower_voltage_v,
-        max_runtime_s=max_runtime_s,
+        tasks=tasks,
+        number_of_cycles=number_of_cycles,
         startup_grace_s=3.0,
+        hard_timeout_s=24 * 60 * 60,
         max_safe_voltage_v=max_safe_voltage_v,
         min_safe_voltage_v=min_safe_voltage_v,
         max_safe_current_a=max_safe_current_a,
@@ -146,13 +243,28 @@ def main() -> None:
     print("Experiment summary")
     print("==================")
     print(f"Experiment name:             {experiment_name}")
-    print(f"Charge current:              {settings.charge_current_uA} uA")
-    print(f"Discharge current:           {settings.discharge_current_uA} uA")
-    print(f"Upper voltage limit:         {settings.upper_voltage_v} V")
-    print(f"Lower voltage limit:         {settings.lower_voltage_v} V")
+    print(f"Number of tasks in cycle:    {len(settings.tasks)}")
+    print(f"Number of cycles:            {settings.number_of_cycles}")
+    print()
+
+    for i, task in enumerate(settings.tasks, start=1):
+        c_rate = current_to_c_rate(task.current_mA)
+
+        print(f"Task {i}")
+        print(f"  Type:                     {task.task_type}")
+        print(f"  Current:                  {task.current_mA} mA")
+        print(f"  Approx. C-rate:           {c_rate:.3f} C")
+
+        if task.task_type == "charge":
+            print(f"  End condition:            E > {task.voltage_limit_v} V")
+        else:
+            print(f"  End condition:            E < {task.voltage_limit_v} V")
+
+        print()
+
     print(f"Maximum temperature:         {settings.max_temperature_c} deg C")
-    print(f"Maximum runtime:             {settings.max_runtime_s} s")
     print(f"Startup grace period:        {settings.startup_grace_s} s")
+    print(f"Hard safety timeout:         {settings.hard_timeout_s} s")
     print(f"Maximum safe voltage:        {settings.max_safe_voltage_v} V")
     print(f"Minimum safe voltage:        {settings.min_safe_voltage_v} V")
     print(f"Maximum safe current:        {settings.max_safe_current_a} A")
@@ -161,6 +273,12 @@ def main() -> None:
     print(f"Template method:             {template_method_path}")
     print(f"Generated method:            {generated_method_path}")
     print(f"Log file:                    {log_path}")
+    print()
+
+    print("Reference for this cell:")
+    print(f"- Nominal capacity:           {NOMINAL_CAPACITY_MAH} mAh")
+    print("- 0.2C current:               22 mA")
+    print("- 1C current:                 110 mA")
     print()
 
     confirm = ask_yes_no("Start experiment now?", default=False)
@@ -175,6 +293,7 @@ def main() -> None:
         generated_method_path=str(generated_method_path),
         log_path=str(log_path),
     )
+
 
 if __name__ == "__main__":
     main()

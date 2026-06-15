@@ -2,23 +2,28 @@ import csv
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from Source.Devices.ivium_driver import IviumDriver, create_cycle_imf, DLL_PATH
+
+from Source.Devices.ivium_driver import (
+    IviumDriver,
+    create_cycle_imf,
+    DLL_PATH,
+    IviumCycleTask,
+)
 from Source.Devices.tempmoni import TemperatureMonitor
 from Source.Devices.tekscan_driver import TekscanDriver
 
+
 @dataclass
 class ExperimentSettings:
-    charge_current_uA: float
-    discharge_current_uA: float
-    upper_voltage_v: float
-    lower_voltage_v: float
+    tasks: list[IviumCycleTask]
+    number_of_cycles: int
 
-    max_runtime_s: float = 30.0
     startup_grace_s: float = 3.0
+    hard_timeout_s: float = 24 * 60 * 60
 
     max_safe_voltage_v: float = 4.25
     min_safe_voltage_v: float = 2.80
-    max_safe_current_a: float = 0.0005
+    max_safe_current_a: float = 0.15
 
     temperature_port: str = "COM7"
     temperature_baud: int = 115200
@@ -27,6 +32,7 @@ class ExperimentSettings:
     use_tekscan: bool = False
 
     log_name: str = "experiment_log.csv"
+
 
 def run_battery_experiment(
     settings: ExperimentSettings,
@@ -39,15 +45,19 @@ def run_battery_experiment(
     log_path = Path(log_path).resolve()
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
+    if len(settings.tasks) < 1:
+        raise ValueError("At least one task is required.")
+
+    if settings.number_of_cycles < 1:
+        raise ValueError("Number of cycles must be at least 1.")
+
     print("Creating Ivium method file...")
 
     method_path = create_cycle_imf(
         template_path=template_method_path,
         output_path=generated_method_path,
-        charge_current_uA=settings.charge_current_uA,
-        discharge_current_uA=settings.discharge_current_uA,
-        upper_voltage_v=settings.upper_voltage_v,
-        lower_voltage_v=settings.lower_voltage_v,
+        tasks=settings.tasks,
+        number_of_cycles=settings.number_of_cycles,
     )
 
     print("Method file:", method_path)
@@ -73,6 +83,9 @@ def run_battery_experiment(
         print("Tekscan recording is enabled.")
         print("I-Scan must already have an active New Recording window open.")
 
+    stop_reason = "unknown"
+    ivium_shutdown_sent = False
+
     def stop_tekscan_recording_if_needed() -> None:
         nonlocal tekscan_recording_started
 
@@ -86,7 +99,28 @@ def run_battery_experiment(
             finally:
                 tekscan_recording_started = False
 
-    stop_reason = "unknown"
+    def shutdown_ivium_output_if_needed() -> None:
+        nonlocal ivium_shutdown_sent
+
+        if ivium_shutdown_sent:
+            return
+
+        try:
+            print("Abort:", ivium.abort())
+        except Exception as e:
+            print(f"Abort failed: {e}")
+
+        try:
+            print("Cell off:", ivium.set_cell_on(False))
+        except Exception as e:
+            print(f"Cell off failed: {e}")
+
+        try:
+            print("Connection mode off:", ivium.set_connection_mode(False))
+        except Exception as e:
+            print(f"Connection mode off failed: {e}")
+
+        ivium_shutdown_sent = True
 
     try:
         result = ivium.open()
@@ -99,6 +133,50 @@ def run_battery_experiment(
         print("Connecting...")
         connect_result = ivium.connect()
         print("Connect:", connect_result)
+
+        print()
+        print("Initial Ivium reading")
+        print("=====================")
+
+        initial_voltage = None
+        initial_current = None
+        initial_voltage_ok = False
+
+        for attempt in range(1, 11):
+            initial_voltage = ivium.get_potential()
+            initial_current = ivium.get_current()
+
+            print(
+                f"Attempt {attempt}/10: "
+                f"E={initial_voltage:.6f} V | "
+                f"I={initial_current:.9f} A"
+            )
+
+            if settings.min_safe_voltage_v <= initial_voltage <= settings.max_safe_voltage_v:
+                initial_voltage_ok = True
+                break
+
+            time.sleep(0.5)
+
+        print()
+
+        if not initial_voltage_ok:
+            print("WARNING: Initial Ivium voltage is outside the safe voltage range.")
+            print(f"Measured initial voltage: {initial_voltage:.6f} V")
+            print(f"Allowed range: {settings.min_safe_voltage_v:.3f} V to {settings.max_safe_voltage_v:.3f} V")
+            print()
+            print("This can happen if Ivium gives a false first reading.")
+            print("Before continuing, check that IviumSoft shows approximately the same voltage as the multimeter.")
+            print()
+
+            user_input = input("Continue anyway? [y/N]: ").strip().lower()
+
+            if user_input not in ("y", "yes", "j", "ja"):
+                stop_reason = "initial_voltage_outside_safe_range_user_aborted"
+                raise RuntimeError("Experiment cancelled because initial Ivium voltage was outside the safe range.")
+
+        print("Initial voltage check completed.")
+        print()
 
         if settings.use_tekscan and tekscan is not None:
             print("Starting Tekscan recording...")
@@ -129,6 +207,8 @@ def run_battery_experiment(
                     "Device status",
                     "Cell status",
                     "Status parameter",
+                    "Requested tasks",
+                    "Requested cycles",
                     "Tekscan recording",
                     "Stop reason",
                 ]
@@ -155,13 +235,15 @@ def run_battery_experiment(
                 tekscan_status = "on" if tekscan_recording_started else "off"
 
                 print(
-                    f"t={elapsed:6.1f} s | "
+                    f"t={elapsed:8.1f} s | "
                     f"E={voltage: .4f} V | "
                     f"I={current: .6f} A | "
                     f"T={temp_text} C | "
                     f"dev={device_status} | "
                     f"cell={cell_status} | "
                     f"stat={status_parameter} | "
+                    f"tasks={len(settings.tasks)} | "
+                    f"cycles={settings.number_of_cycles} | "
                     f"Tekscan={tekscan_status}"
                 )
 
@@ -203,9 +285,9 @@ def run_battery_experiment(
                         print("Temperature safety limit reached.")
                         print(f"Measured temperature was {temperature_c:.2f} °C")
 
-                if row_stop_reason == "" and elapsed >= settings.max_runtime_s:
-                    row_stop_reason = "time_limit"
-                    print("Time limit reached.")
+                if row_stop_reason == "" and elapsed >= settings.hard_timeout_s:
+                    row_stop_reason = "hard_timeout"
+                    print("Hard timeout reached.")
 
                 if row_stop_reason != "":
                     stop_reason = row_stop_reason
@@ -219,6 +301,8 @@ def run_battery_experiment(
                         device_status,
                         cell_status,
                         status_parameter,
+                        len(settings.tasks),
+                        settings.number_of_cycles,
                         tekscan_status,
                         row_stop_reason,
                     ]
@@ -235,22 +319,7 @@ def run_battery_experiment(
 
                     else:
                         print("Python-triggered stop. Aborting Ivium before stopping Tekscan.")
-
-                        try:
-                            print("Abort:", ivium.abort())
-                        except Exception as e:
-                            print(f"Abort failed: {e}")
-
-                        try:
-                            print("Cell off:", ivium.set_cell_on(False))
-                        except Exception as e:
-                            print(f"Cell off failed: {e}")
-
-                        try:
-                            print("Connection mode off:", ivium.set_connection_mode(False))
-                        except Exception as e:
-                            print(f"Connection mode off failed: {e}")
-
+                        shutdown_ivium_output_if_needed()
                         stop_tekscan_recording_if_needed()
 
                     break
@@ -261,22 +330,8 @@ def run_battery_experiment(
         print("Stopping experiment...")
         print("Stop reason:", stop_reason)
 
-        try:
-            print("Abort:", ivium.abort())
-        except Exception as e:
-            print(f"Abort failed: {e}")
-
         stop_tekscan_recording_if_needed()
-
-        try:
-            print("Cell off:", ivium.set_cell_on(False))
-        except Exception as e:
-            print(f"Cell off failed: {e}")
-
-        try:
-            print("Connection mode off:", ivium.set_connection_mode(False))
-        except Exception as e:
-            print(f"Connection mode off failed: {e}")
+        shutdown_ivium_output_if_needed()
 
         try:
             print("Close:", ivium.close())
