@@ -4,12 +4,9 @@ from pathlib import Path
 from Source.Devices.ivium_driver import IviumCycleTask
 from Source.Experiment.cycling_experiment import (
     ExperimentSettings,
-    run_battery_experiment,
-)
-
+    run_battery_experiment,)
 
 NOMINAL_CAPACITY_MAH = 110.0
-
 
 def ask_float(prompt: str, default: float) -> float:
     user_input = input(f"{prompt} [{default}]: ").strip()
@@ -19,7 +16,6 @@ def ask_float(prompt: str, default: float) -> float:
 
     return float(user_input.replace(",", "."))
 
-
 def ask_int(prompt: str, default: int) -> int:
     user_input = input(f"{prompt} [{default}]: ").strip()
 
@@ -27,7 +23,6 @@ def ask_int(prompt: str, default: int) -> int:
         return default
 
     return int(user_input)
-
 
 def ask_yes_no(prompt: str, default: bool = False) -> bool:
     default_text = "y" if default else "n"
@@ -38,11 +33,10 @@ def ask_yes_no(prompt: str, default: bool = False) -> bool:
 
     return user_input in ("y", "yes", "j", "ja")
 
-
 def ask_task_type(task_number: int, default: str) -> str:
     while True:
         user_input = input(
-            f"Task {task_number} type [charge/discharge, default {default}]: "
+            f"Task {task_number} type [charge/discharge/rest, default {default}]: "
         ).strip().lower()
 
         if user_input == "":
@@ -54,8 +48,10 @@ def ask_task_type(task_number: int, default: str) -> str:
         if user_input in ("discharge", "dch", "d", "urladdning", "urladda"):
             return "discharge"
 
-        print("Invalid task type. Use 'charge' or 'discharge'.")
+        if user_input in ("rest", "ocp", "pause", "paus", "vilopaus", "vila"):
+            return "rest"
 
+        print("Invalid task type. Use 'charge', 'discharge', or 'rest'.")
 
 def sanitize_filename_part(text: str, default: str = "battery_experiment") -> str:
     text = text.strip()
@@ -83,13 +79,11 @@ def sanitize_filename_part(text: str, default: str = "battery_experiment") -> st
 
     return cleaned
 
-
 def current_to_c_rate(current_mA: float) -> float:
     return abs(current_mA) / NOMINAL_CAPACITY_MAH
 
-
 def build_tasks_from_user_input() -> list[IviumCycleTask]:
-    number_of_tasks = ask_int("Number of tasks in one cycle", 2)
+    number_of_tasks = ask_int("Number of tasks in one cycle", 3)
 
     if number_of_tasks < 1:
         raise ValueError("Number of tasks must be at least 1.")
@@ -102,10 +96,15 @@ def build_tasks_from_user_input() -> list[IviumCycleTask]:
     print("Supported task types:")
     print("- charge:    CC charge until E > voltage limit")
     print("- discharge: CC discharge until E < voltage limit")
+    print("- rest:      OCP/rest for a selected duration")
     print()
 
+    default_three_task_sequence = ["charge", "rest", "discharge"]
+
     for task_number in range(1, number_of_tasks + 1):
-        if task_number % 2 == 1:
+        if number_of_tasks == 3:
+            default_type = default_three_task_sequence[task_number - 1]
+        elif task_number % 2 == 1:
             default_type = "charge"
         else:
             default_type = "discharge"
@@ -115,37 +114,65 @@ def build_tasks_from_user_input() -> list[IviumCycleTask]:
         if task_type == "charge":
             default_current_mA = 22.0
             default_voltage_limit_v = 4.20
-        else:
+
+            current_mA = ask_float(
+                f"Task {task_number} current [mA]",
+                default_current_mA,
+            )
+            current_mA = abs(current_mA)
+
+            voltage_limit_v = ask_float(
+                f"Task {task_number} voltage limit [V]",
+                default_voltage_limit_v,
+            )
+
+            tasks.append(
+                IviumCycleTask(
+                    task_type=task_type,
+                    current_mA=current_mA,
+                    voltage_limit_v=voltage_limit_v,
+                )
+            )
+
+        elif task_type == "discharge":
             default_current_mA = -22.0
             default_voltage_limit_v = 3.00
 
-        current_mA = ask_float(
-            f"Task {task_number} current [mA]",
-            default_current_mA,
-        )
-
-        if task_type == "charge":
-            current_mA = abs(current_mA)
-        else:
+            current_mA = ask_float(
+                f"Task {task_number} current [mA]",
+                default_current_mA,
+            )
             current_mA = -abs(current_mA)
 
-        voltage_limit_v = ask_float(
-            f"Task {task_number} voltage limit [V]",
-            default_voltage_limit_v,
-        )
-
-        tasks.append(
-            IviumCycleTask(
-                task_type=task_type,
-                current_mA=current_mA,
-                voltage_limit_v=voltage_limit_v,
+            voltage_limit_v = ask_float(
+                f"Task {task_number} voltage limit [V]",
+                default_voltage_limit_v,
             )
-        )
+
+            tasks.append(
+                IviumCycleTask(
+                    task_type=task_type,
+                    current_mA=current_mA,
+                    voltage_limit_v=voltage_limit_v,
+                )
+            )
+
+        elif task_type == "rest":
+            duration_s = ask_float(
+                f"Task {task_number} rest duration [s]",
+                120.0,
+            )
+
+            tasks.append(
+                IviumCycleTask(
+                    task_type=task_type,
+                    duration_s=duration_s,
+                )
+            )
 
         print()
 
     return tasks
-
 
 def main() -> None:
     print()
@@ -236,8 +263,7 @@ def main() -> None:
         temperature_baud=temperature_baud,
         max_temperature_c=max_temperature_c,
         use_tekscan=use_tekscan,
-        log_name=log_path.name,
-    )
+        log_name=log_path.name,)
 
     print()
     print("Experiment summary")
@@ -248,17 +274,24 @@ def main() -> None:
     print()
 
     for i, task in enumerate(settings.tasks, start=1):
-        c_rate = current_to_c_rate(task.current_mA)
-
         print(f"Task {i}")
         print(f"  Type:                     {task.task_type}")
-        print(f"  Current:                  {task.current_mA} mA")
-        print(f"  Approx. C-rate:           {c_rate:.3f} C")
 
         if task.task_type == "charge":
+            c_rate = current_to_c_rate(task.current_mA)
+            print(f"  Current:                  {task.current_mA} mA")
+            print(f"  Approx. C-rate:           {c_rate:.3f} C")
             print(f"  End condition:            E > {task.voltage_limit_v} V")
-        else:
+
+        elif task.task_type == "discharge":
+            c_rate = current_to_c_rate(task.current_mA)
+            print(f"  Current:                  {task.current_mA} mA")
+            print(f"  Approx. C-rate:           {c_rate:.3f} C")
             print(f"  End condition:            E < {task.voltage_limit_v} V")
+
+        elif task.task_type == "rest":
+            print(f"  Mode:                     OCP / rest")
+            print(f"  Duration:                 {task.duration_s} s")
 
         print()
 
@@ -291,9 +324,7 @@ def main() -> None:
         settings=settings,
         template_method_path=str(template_method_path),
         generated_method_path=str(generated_method_path),
-        log_path=str(log_path),
-    )
-
+        log_path=str(log_path),)
 
 if __name__ == "__main__":
     main()

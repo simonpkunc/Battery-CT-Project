@@ -10,9 +10,10 @@ DLL_PATH = r"C:\IviumStat\Software Development Driver\IVIUM_remdriver64.dll"
 
 @dataclass
 class IviumCycleTask:
-    task_type: str          # "charge" or "discharge"
-    current_mA: float
-    voltage_limit_v: float
+    task_type: str          # "charge", "discharge", or "rest"
+    current_mA: float = 0.0
+    voltage_limit_v: float | None = None
+    duration_s: float | None = None
 
 class IviumDriver:
     def __init__(self, dll_path: str):
@@ -178,6 +179,7 @@ def create_cycle_imf(
     Supported task types:
     - charge:    CC with E> voltage limit
     - discharge: CC with E< voltage limit
+    - rest:      OCP/rest with Timer> duration
     """
 
     template_path = Path(template_path)
@@ -246,11 +248,17 @@ def create_cycle_imf(
 
         task_type = task.task_type.strip().lower()
 
-        if task_type not in ("charge", "discharge"):
+        if task_type not in ("charge", "discharge", "rest"):
             raise ValueError(
                 f"Unsupported task type: {task.task_type}. "
-                "Use 'charge' or 'discharge'."
+                "Use 'charge', 'discharge', or 'rest'."
             )
+
+        if task_type in ("charge", "discharge") and task.voltage_limit_v is None:
+            raise ValueError(f"Voltage limit is required for task type '{task_type}'.")
+
+        if task_type == "rest" and task.duration_s is None:
+            raise ValueError("duration_s is required for rest tasks.")
 
         new_block = []
 
@@ -262,13 +270,19 @@ def create_cycle_imf(
                 new_line = set_value(new_line, "Single")
 
             elif base == b"Tasks.Mode":
-                new_line = set_value(new_line, "CC")
+                if task_type == "rest":
+                    new_line = set_value(new_line, "OCP")
+                else:
+                    new_line = set_value(new_line, "CC")
 
             elif base == b"Tasks.Tech":
                 new_line = set_value(new_line, "DC")
 
             elif base == b"Tasks.I":
-                new_line = set_value(new_line, f"{task.current_mA:g}")
+                if task_type == "rest":
+                    new_line = set_value(new_line, "0")
+                else:
+                    new_line = set_value(new_line, f"{task.current_mA:g}")
 
             elif base == b"Tasks.Iunit":
                 new_line = set_value(new_line, "mA")
@@ -276,8 +290,10 @@ def create_cycle_imf(
             elif base == b"Tasks.End1":
                 if task_type == "charge":
                     new_line = set_value(new_line, "E>")
-                else:
+                elif task_type == "discharge":
                     new_line = set_value(new_line, "E<")
+                else:
+                    new_line = set_value(new_line, "Timer>")
 
             elif base == b"Tasks.End2":
                 new_line = set_value(new_line, "select")
@@ -302,6 +318,19 @@ def create_cycle_imf(
                     new_line = set_value(new_line, f"{task.voltage_limit_v:g}")
                 else:
                     new_line = set_value(new_line, "1")
+
+            elif base == b"Tasks.Timer>":
+                if task_type == "rest":
+                    new_line = set_value(new_line, f"{task.duration_s:g}")
+                else:
+                    new_line = set_value(new_line, "10")
+
+            elif base == b"Tasks.Duration":
+                if task_type == "rest":
+                    new_line = set_value(new_line, f"{task.duration_s:g}")
+
+            elif base == b"Tasks.Timeunit":
+                new_line = set_value(new_line, "s")
 
             new_block.append(new_line)
 
@@ -340,10 +369,7 @@ def create_cycle_imf(
 
     new_lines = []
 
-    # Everything before Tasks=
     new_lines.extend(lines[:tasks_line_index])
-
-    # Tasks=<number of tasks in one cycle>
     new_lines.append(set_value(lines[tasks_line_index], str(len(tasks))))
 
     charge_label_used = False
@@ -372,10 +398,15 @@ def create_cycle_imf(
             else:
                 task_label = "N:"
 
+        elif task_type == "rest":
+            template_block = charge_template
+            old_index = 1
+            task_label = "N:"
+
         else:
             raise ValueError(
                 f"Unsupported task type: {task.task_type}. "
-                "Use 'charge' or 'discharge'."
+                "Use 'charge', 'discharge', or 'rest'."
             )
 
         new_lines.extend(
@@ -388,7 +419,6 @@ def create_cycle_imf(
             )
         )
 
-    # Everything after the task section
     new_lines.extend(lines[after_task_section_index:])
 
     rebuilt_data = b"".join(new_lines)

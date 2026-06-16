@@ -12,7 +12,6 @@ from Source.Devices.ivium_driver import (
 from Source.Devices.tempmoni import TemperatureMonitor
 from Source.Devices.tekscan_driver import TekscanDriver
 
-
 @dataclass
 class ExperimentSettings:
     tasks: list[IviumCycleTask]
@@ -32,7 +31,6 @@ class ExperimentSettings:
     use_tekscan: bool = False
 
     log_name: str = "experiment_log.csv"
-
 
 def run_battery_experiment(
     settings: ExperimentSettings,
@@ -86,18 +84,28 @@ def run_battery_experiment(
     stop_reason = "unknown"
     ivium_shutdown_sent = False
 
-    def stop_tekscan_recording_if_needed() -> None:
+    def stop_tekscan_recording_if_needed(force: bool = False) -> None:
         nonlocal tekscan_recording_started
 
-        if tekscan_recording_started and tekscan is not None:
-            try:
-                print("Stopping Tekscan recording...")
-                tekscan.stop_recording()
-                print("Tekscan recording stop command sent.")
-            except Exception as e:
-                print(f"Tekscan stop failed: {e}")
-            finally:
-                tekscan_recording_started = False
+        if tekscan is None:
+            return
+
+        if not tekscan_recording_started and not force:
+            return
+
+        try:
+            if force and not tekscan_recording_started:
+                print("Forcing Tekscan stop command even though internal flag is off.")
+
+            print("Stopping Tekscan recording...")
+            tekscan.stop_recording()
+            print("Tekscan recording stop command sent.")
+
+        except Exception as e:
+            print(f"Tekscan stop failed: {e}")
+
+        finally:
+            tekscan_recording_started = False
 
     def shutdown_ivium_output_if_needed() -> None:
         nonlocal ivium_shutdown_sent
@@ -315,12 +323,12 @@ def run_battery_experiment(
 
                     if row_stop_reason == "ivium_method_completed_or_aborted":
                         print("Ivium already stopped or manually aborted. Stopping Tekscan now.")
-                        stop_tekscan_recording_if_needed()
+                        stop_tekscan_recording_if_needed(force=settings.use_tekscan)
 
                     else:
                         print("Python-triggered stop. Aborting Ivium before stopping Tekscan.")
                         shutdown_ivium_output_if_needed()
-                        stop_tekscan_recording_if_needed()
+                        stop_tekscan_recording_if_needed(force=settings.use_tekscan)
 
                     break
 
@@ -330,7 +338,7 @@ def run_battery_experiment(
         print("Stopping experiment...")
         print("Stop reason:", stop_reason)
 
-        stop_tekscan_recording_if_needed()
+        stop_tekscan_recording_if_needed(force=settings.use_tekscan)
         shutdown_ivium_output_if_needed()
 
         try:
