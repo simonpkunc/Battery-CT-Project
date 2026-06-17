@@ -2,6 +2,7 @@ import csv
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from Source.Logging.status_logger import ExperimentStatusLogger
 
 from Source.Devices.ivium_driver import (
     IviumDriver,
@@ -42,6 +43,21 @@ def run_battery_experiment(
     generated_method_path = str(Path(generated_method_path).resolve())
     log_path = Path(log_path).resolve()
     log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    status_path = log_path.parent.parent/"status"/"latest_status.txt"
+    terminal_log_path = log_path.with_name(log_path.stem + "_terminal_log.txt")
+
+    status_logger = ExperimentStatusLogger(status_path)
+
+    status_logger.write_status(
+        state = "sarting",
+        csv_log = log_path,
+        terminal_log = terminal_log_path,
+        requested_tasks = len(settings.tasks),
+        requested_cycles = settings.number_of_cycles,
+        tekscan_enabled = settings.use_tekscan,
+        stop_reason = "",
+    )
 
     if len(settings.tasks) < 1:
         raise ValueError("At least one task is required.")
@@ -300,6 +316,28 @@ def run_battery_experiment(
                 if row_stop_reason != "":
                     stop_reason = row_stop_reason
 
+                status_state = "running",
+
+                if row_stop_reason != "":
+                    status_state = "stopping",
+
+                status_logger.write_status(
+                    state = status_state,
+                    elapsed_time_s = f"{elapsed:.1f}",
+                    potential_v = f"{voltage:.6f}",
+                    current_a = f"{current:.9f}",
+                    temperature_c = ""if temperature_c is None else f"{temperature_c:.2f}",
+                    device_status = device_status,
+                    cell_status = cell_status,
+                    status_parameter = status_parameter,
+                    requested_tasks = len(settings.tasks),
+                    requested_cycles = settings.number_of_cycles,
+                    tekscan_recording = tekscan_status,
+                    csv_log = log_path,
+                    terminal_log = terminal_log_path,
+                    stop_reason = row_stop_reason,
+                ) 
+
                 writer.writerow(
                     [
                         f"{elapsed:.3f}",
@@ -338,6 +376,20 @@ def run_battery_experiment(
         print("Stopping experiment...")
         print("Stop reason:", stop_reason)
 
+        try:
+            status_logger.write_status(
+                state = "stopping_cleanup",
+                csv_log = log_path,
+                terminal_log = terminal_log_path,
+                requested_tasks = len(settings.tasks),
+                requested_cycles = settings.number_of_cycles,
+                tekscan_enabled = settings.use_tekscan,
+                stop_reason = stop_reason,
+            )
+        
+        except Exception as e:
+            print(f"Status update failed: {e}")
+
         stop_tekscan_recording_if_needed(force=settings.use_tekscan)
         shutdown_ivium_output_if_needed()
 
@@ -353,3 +405,15 @@ def run_battery_experiment(
             print(f"Temperature monitor close failed: {e}")
 
         print(f"Data saved to: {log_path}")
+        try:
+            status_logger.write_status(
+                state = "stopped",
+                csv_log = log_path,
+                terminal_log = terminal_log_path,
+                requested_tasks = len(settings.tasks),
+                requested_cycles = settings.number_of_cycles,
+                tekscan_enabled = settings.ues_tekscan,
+                stop_reason = stop_reason,
+            )
+        except Exception as e:
+            print(f"Final status update failed: {e}")

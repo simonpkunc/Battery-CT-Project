@@ -5,6 +5,7 @@ from Source.Devices.ivium_driver import IviumCycleTask
 from Source.Experiment.cycling_experiment import (
     ExperimentSettings,
     run_battery_experiment,)
+from Source.Logging.status_logger import mirror_stdout_to_file
 
 NOMINAL_CAPACITY_MAH = 110.0
 
@@ -249,7 +250,10 @@ def main() -> None:
     generated_method_path = generated_methods_folder / "generated_ivium_cycle.imf"
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_path = logs_folder / f"{timestamp}_{experiment_name}.csv"
+    log_path = logs_folder/f"{timestamp}_{experiment_name}.csv"
+    terminal_log_path = logs_folder/f"{timestamp}_{experiment_name}_terminal_log.txt"
+    status_path = data_folder/"status"/"latest_status.txt"
+
 
     settings = ExperimentSettings(
         tasks=tasks,
@@ -271,6 +275,8 @@ def main() -> None:
     print(f"Experiment name:             {experiment_name}")
     print(f"Number of tasks in cycle:    {len(settings.tasks)}")
     print(f"Number of cycles:            {settings.number_of_cycles}")
+    print(f"Terminal log file:           {terminal_log_path}")
+    print(f"Latest status file:          {status_path}") 
     print()
 
     for i, task in enumerate(settings.tasks, start=1):
@@ -320,11 +326,13 @@ def main() -> None:
         print("Experiment cancelled.")
         return
 
-    run_battery_experiment(
-        settings=settings,
-        template_method_path=str(template_method_path),
-        generated_method_path=str(generated_method_path),
-        log_path=str(log_path),)
+    with mirror_stdout_to_file(terminal_log_path):
+        run_battery_experiment(
+            settings = settings,
+            template_method_path = str(template_method_path),
+            generated_method_path = str(generated_method_path),
+            log_path = str(log_path),
+        )
 
 if __name__ == "__main__":
     main()
