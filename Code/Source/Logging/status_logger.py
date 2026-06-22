@@ -1,11 +1,10 @@
 from __future__ import annotations
-
 import sys
+import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import TextIO
-
 
 class TeeStream:
     """
@@ -72,13 +71,23 @@ def mirror_stdout_to_file(log_path: str | Path):
 class ExperimentStatusLogger:
     """
     Writes a small status file that can be viewed remotely, for example via OneDrive.
+
+    To avoid overwhelming OneDrive, normal status updates are written at most
+    once every min_write_interval_s seconds. Important updates can be forced.
     """
 
-    def __init__(self, status_path: str | Path):
+    def __init__(self, status_path: str | Path, min_write_interval_s: float = 15.0):
         self.status_path = Path(status_path)
         self.status_path.parent.mkdir(parents=True, exist_ok=True)
+        self.min_write_interval_s = min_write_interval_s
+        self._last_write_time = 0.0
 
-    def write_status(self, **fields) -> None:
+    def write_status(self, force: bool = False, **fields) -> None:
+        now_monotonic = time.monotonic()
+
+        if not force and (now_monotonic - self._last_write_time) < self.min_write_interval_s:
+            return
+
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         lines = [
@@ -96,15 +105,34 @@ class ExperimentStatusLogger:
             else:
                 value_text = str(value)
 
-            if key in ("requested_tasks", "requested_cycles", "tekscan_enabled") and value_text != "":
+            if key in (
+                "state",
+                "elapsed_time_s",
+                "potential_v",
+                "current_a",
+                "temperature_c",
+                "device_status",
+                "cell_status",
+                "status_parameter",
+                "requested_tasks",
+                "requested_cycles",
+                "max_temperature_c",
+                "max_safe_voltage_v",
+                "min_safe_voltage_v",
+                "max_safe_current_a",
+                "tekscan_enabled",
+                "tekscan_recording",
+                "stop_reason",
+            ) and value_text != "":
                 value_text = value_text.rstrip(".") + "."
 
             lines.append(f"{label}: {value_text}")
 
         lines.append("")
-
         text = "\n".join(lines)
 
-        temporary_path = self.status_path.with_suffix(".tmp")
-        temporary_path.write_text(text, encoding="utf-8")
-        temporary_path.replace(self.status_path)
+        with open(self.status_path, "w", encoding="utf-8") as file:
+            file.write(text)
+            file.flush()
+
+        self._last_write_time = time.monotonic()

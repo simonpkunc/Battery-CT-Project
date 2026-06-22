@@ -1,6 +1,5 @@
 from datetime import datetime
 from pathlib import Path
-
 from Source.Devices.ivium_driver import IviumCycleTask
 from Source.Experiment.cycling_experiment import (
     ExperimentSettings,

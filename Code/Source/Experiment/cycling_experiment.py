@@ -64,6 +64,7 @@ def run_battery_experiment(
     status_logger = ExperimentStatusLogger(status_path)
 
     status_logger.write_status(
+        force = True,
         state = "Starting experiment",
         csv_log = log_path,
         terminal_log = terminal_log_path,
@@ -253,6 +254,16 @@ def run_battery_experiment(
             )
             file.flush()
 
+            latest_elapsed_s = None
+            latest_voltage_v = None
+            latest_current_a = None
+            latest_temperature_c = None
+            latest_device_status = None
+            latest_cell_status = None
+            latest_status_parameter = None
+            latest_tekscan_status = None
+            latest_stop_reason = ""
+
             while True:
                 elapsed = time.time() - start_time
                 in_startup_grace = elapsed < settings.startup_grace_s
@@ -339,22 +350,37 @@ def run_battery_experiment(
                 if row_stop_reason != "":
                     status_state = "stopping."
 
+                latest_elapsed_s = elapsed
+                latest_voltage_v = voltage
+                latest_current_a = current
+                latest_temperature_c = temperature_c
+                latest_device_status = device_status
+                latest_cell_status = cell_status
+                latest_status_parameter = status_parameter
+                latest_tekscan_status = tekscan_status
+                latest_stop_reason = row_stop_reason
+
                 status_logger.write_status(
-                    state = status_state,
-                    elapsed_time_s = f"{elapsed:.1f}",
-                    potential_v = f"{voltage:.6f}",
-                    current_a = f"{current:.9f}",
-                    temperature_c = ""if temperature_c is None else f"{temperature_c:.2f}",
-                    device_status = device_status,
-                    cell_status = cell_status,
-                    status_parameter = status_parameter,
-                    requested_tasks = len(settings.tasks),
-                    requested_cycles = settings.number_of_cycles,
-                    tekscan_recording = tekscan_status,
-                    csv_log = log_path,
-                    terminal_log = terminal_log_path,
-                    stop_reason = row_stop_reason,
-                ) 
+                    state=status_state,
+                    elapsed_time_s=f"{elapsed:.1f}",
+                    potential_v=f"{voltage:.6f}",
+                    current_a=f"{current:.9f}",
+                    temperature_c="" if temperature_c is None else f"{temperature_c:.2f}",
+                    device_status=device_status,
+                    cell_status=cell_status,
+                    status_parameter=status_parameter,
+                    requested_tasks=len(settings.tasks),
+                    requested_cycles=settings.number_of_cycles,
+                    max_temperature_c="" if settings.max_temperature_c is None else settings.max_temperature_c,
+                    max_safe_voltage_v=settings.max_safe_voltage_v,
+                    min_safe_voltage_v=settings.min_safe_voltage_v,
+                    max_safe_current_a=settings.max_safe_current_a,
+                    tekscan_enabled=settings.use_tekscan,
+                    tekscan_recording=tekscan_status,
+                    csv_log=log_path,
+                    terminal_log=terminal_log_path,
+                    stop_reason=row_stop_reason,
+                )
 
                 writer.writerow(
                     [
@@ -396,13 +422,26 @@ def run_battery_experiment(
 
         try:
             status_logger.write_status(
-                state = "stopping_cleanup",
-                csv_log = log_path,
-                terminal_log = terminal_log_path,
-                requested_tasks = len(settings.tasks),
-                requested_cycles = settings.number_of_cycles,
-                tekscan_enabled = settings.use_tekscan,
-                stop_reason = stop_reason,
+                force = True,
+                state="stopped",
+                elapsed_time_s="" if latest_elapsed_s is None else f"{latest_elapsed_s:.1f}",
+                potential_v="" if latest_voltage_v is None else f"{latest_voltage_v:.6f}",
+                current_a="" if latest_current_a is None else f"{latest_current_a:.9f}",
+                temperature_c="" if latest_temperature_c is None else f"{latest_temperature_c:.2f}",
+                device_status=latest_device_status,
+                cell_status=latest_cell_status,
+                status_parameter=latest_status_parameter,
+                requested_tasks=len(settings.tasks),
+                requested_cycles=settings.number_of_cycles,
+                max_temperature_c="" if settings.max_temperature_c is None else settings.max_temperature_c,
+                max_safe_voltage_v=settings.max_safe_voltage_v,
+                min_safe_voltage_v=settings.min_safe_voltage_v,
+                max_safe_current_a=settings.max_safe_current_a,
+                tekscan_enabled=settings.use_tekscan,
+                tekscan_recording=latest_tekscan_status,
+                csv_log=log_path,
+                terminal_log=terminal_log_path,
+                stop_reason=stop_reason,
             )
         
         except Exception as e:
@@ -425,13 +464,26 @@ def run_battery_experiment(
         print(f"Data saved to: {log_path}")
         try:
             status_logger.write_status(
-                state = "stopped.",
-                csv_log = log_path,
-                terminal_log = terminal_log_path,
-                requested_tasks = len(settings.tasks),
-                requested_cycles = settings.number_of_cycles,
-                tekscan_enabled = settings.use_tekscan,
-                stop_reason = stop_reason,
+                force = True,
+                state="stopped",
+                elapsed_time_s="" if latest_elapsed_s is None else f"{latest_elapsed_s:.1f}",
+                potential_v="" if latest_voltage_v is None else f"{latest_voltage_v:.6f}",
+                current_a="" if latest_current_a is None else f"{latest_current_a:.9f}",
+                temperature_c="" if latest_temperature_c is None else f"{latest_temperature_c:.2f}",
+                device_status=latest_device_status,
+                cell_status=latest_cell_status,
+                status_parameter=latest_status_parameter,
+                requested_tasks=len(settings.tasks),
+                requested_cycles=settings.number_of_cycles,
+                max_temperature_c="" if settings.max_temperature_c is None else settings.max_temperature_c,
+                max_safe_voltage_v=settings.max_safe_voltage_v,
+                min_safe_voltage_v=settings.min_safe_voltage_v,
+                max_safe_current_a=settings.max_safe_current_a,
+                tekscan_enabled=settings.use_tekscan,
+                tekscan_recording=latest_tekscan_status,
+                csv_log=log_path,
+                terminal_log=terminal_log_path,
+                stop_reason=stop_reason,
             )
         except Exception as e:
             print(f"Final status update failed: {e}")
