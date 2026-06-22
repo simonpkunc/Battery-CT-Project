@@ -64,7 +64,7 @@ def run_battery_experiment(
     status_logger = ExperimentStatusLogger(status_path)
 
     status_logger.write_status(
-        state = "sarting",
+        state = "Starting experiment",
         csv_log = log_path,
         terminal_log = terminal_log_path,
         requested_tasks = len(settings.tasks),
@@ -430,7 +430,7 @@ def run_battery_experiment(
                 terminal_log = terminal_log_path,
                 requested_tasks = len(settings.tasks),
                 requested_cycles = settings.number_of_cycles,
-                tekscan_enabled = settings.ues_tekscan,
+                tekscan_enabled = settings.use_tekscan,
                 stop_reason = stop_reason,
             )
         except Exception as e:
