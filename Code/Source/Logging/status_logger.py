@@ -96,7 +96,7 @@ class ExperimentStatusLogger:
             else:
                 value_text = str(value)
 
-            if key in ("requested_tasks", "requested_cycles") and value_text != "":
+            if key in ("requested_tasks", "requested_cycles", "tekscan_enabled") and value_text != "":
                 value_text = value_text.rstrip(".") + "."
 
             lines.append(f"{label}: {value_text}")
