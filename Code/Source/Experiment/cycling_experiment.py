@@ -334,10 +334,10 @@ def run_battery_experiment(
                 if row_stop_reason != "":
                     stop_reason = row_stop_reason
 
-                status_state = "running",
+                status_state = "running."
 
                 if row_stop_reason != "":
-                    status_state = "stopping",
+                    status_state = "stopping."
 
                 status_logger.write_status(
                     state = status_state,
@@ -425,7 +425,7 @@ def run_battery_experiment(
         print(f"Data saved to: {log_path}")
         try:
             status_logger.write_status(
-                state = "stopped",
+                state = "stopped.",
                 csv_log = log_path,
                 terminal_log = terminal_log_path,
                 requested_tasks = len(settings.tasks),
