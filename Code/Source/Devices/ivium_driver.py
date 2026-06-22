@@ -192,7 +192,7 @@ def create_cycle_imf(
         raise ValueError("At least one task is required.")
 
     if number_of_cycles < 1:
-        raise ValueError("number_of_cycles must be at least 1.")
+        raise ValueError("Number of cycles must be at least 1.")
 
     data = template_path.read_bytes()
     lines = data.splitlines(keepends=True)
@@ -258,7 +258,7 @@ def create_cycle_imf(
             raise ValueError(f"Voltage limit is required for task type '{task_type}'.")
 
         if task_type == "rest" and task.duration_s is None:
-            raise ValueError("duration_s is required for rest tasks.")
+            raise ValueError("Duration in seconds is required for rest tasks.")
 
         new_block = []
 

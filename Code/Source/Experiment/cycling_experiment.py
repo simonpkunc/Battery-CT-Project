@@ -1,5 +1,6 @@
 import csv
 import time
+import msvcrt
 from dataclasses import dataclass
 from pathlib import Path
 from Source.Logging.status_logger import ExperimentStatusLogger
@@ -32,6 +33,19 @@ class ExperimentSettings:
     use_tekscan: bool = False
 
     log_name: str = "experiment_log.csv"
+
+def terminal_escape_pressed() -> bool:
+    """
+    Returns True if Esc has been pressed in the terminal.
+
+    This works on Windows terminals. The terminal must have focus.
+    """
+    if not msvcrt.kbhit():
+        return False
+
+    key = msvcrt.getwch()
+
+    return key == "\x1b"
 
 def run_battery_experiment(
     settings: ExperimentSettings,
@@ -97,7 +111,7 @@ def run_battery_experiment(
         print("Tekscan recording is enabled.")
         print("I-Scan must already have an active New Recording window open.")
 
-    stop_reason = "unknown"
+    stop_reason = "Unknown."
     ivium_shutdown_sent = False
 
     def stop_tekscan_recording_if_needed(force: bool = False) -> None:
@@ -151,8 +165,8 @@ def run_battery_experiment(
         print("Open:", result)
 
         if result != 0:
-            stop_reason = "ivium_open_failed"
-            raise RuntimeError("IV_open failed. Make sure IviumSoft is open and connected.")
+            stop_reason = "Failed to open Ivium."
+            raise RuntimeError("Failed to open Ivium. Make sure IviumSoft is open and connected.")
 
         print("Connecting...")
         connect_result = ivium.connect()
@@ -196,7 +210,7 @@ def run_battery_experiment(
             user_input = input("Continue anyway? [y/N]: ").strip().lower()
 
             if user_input not in ("y", "yes", "j", "ja"):
-                stop_reason = "initial_voltage_outside_safe_range_user_aborted"
+                stop_reason = "Initial voltage outside safe range."
                 raise RuntimeError("Experiment cancelled because initial Ivium voltage was outside the safe range.")
 
         print("Initial voltage check completed.")
@@ -213,7 +227,7 @@ def run_battery_experiment(
         print("Start method:", start_result)
 
         if start_result != 0:
-            stop_reason = "ivium_startmethod_failed"
+            stop_reason = "Ivium startmethod failed."
             raise RuntimeError("IV_startmethod failed. Check the .imf file and IviumSoft status.")
 
         start_time = time.time()
@@ -308,6 +322,10 @@ def run_battery_experiment(
                         row_stop_reason = "temperature_safety_limit"
                         print("Temperature safety limit reached.")
                         print(f"Measured temperature was {temperature_c:.2f} °C")
+
+                if row_stop_reason == "" and terminal_escape_pressed():
+                    row_stop_reason = "manual_terminal_escape"
+                    print("Manual stop requested from terminal with Esc.")
 
                 if row_stop_reason == "" and elapsed >= settings.hard_timeout_s:
                     row_stop_reason = "hard_timeout"

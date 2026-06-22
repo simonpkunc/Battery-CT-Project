@@ -180,14 +180,15 @@ def main() -> None:
     print("Battery CT experiment control")
     print("=============================")
     print()
-    print("Make sure that:")
-    print("- IviumSoft is open and connected")
-    print("- Arduino Serial Monitor is closed")
-    print("- The battery/dummy load is connected correctly")
-    print("- IviumSoft shows approximately the same voltage as the multimeter")
+    print("Before starting, make sure that:")
+    print("- IviumSoft is open and connected.")
+    print("- IviumSoft shows approximately the same voltage as the multimeter.")
+    print("- Arduino Serial Monitor is closed.")
+    print("- The battery/dummy load is connected correctly.")
+    print("- I-Scan is opened and the correct files for calibration equilibration are loaded.")
     print()
 
-    run_setup = ask_yes_no("Start setup?", default=True)
+    run_setup = ask_yes_no("Start experiment?", default=True)
 
     if not run_setup:
         print("Experiment cancelled.")
@@ -195,7 +196,7 @@ def main() -> None:
 
     print()
     print("Enter experiment settings.")
-    print("Press Enter to use the default value.")
+    print("Press Enter to use the default value in the brackets.")
     print()
 
     experiment_name_input = input("Experiment name [battery_test]: ").strip()
