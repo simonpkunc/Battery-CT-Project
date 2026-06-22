@@ -51,7 +51,7 @@ BCcontrol.ProfilePoints=32
 BCcontrol.Ca=1
 BCcontrol.Cb=1
 Profile=0.0156250.031250.0468750.06250.0781250.093750.1093750.1250.1406250.156250.1718750.18750.2031250.218750.2343750.250.2656250.281250.2968750.31250.3281250.343750.3593750.3750.3906250.406250.4218750.43750.4531250.468750.4843750.5
-Tasks=2
+Tasks=3
 Tasks.Loop[1]=Single
 Tasks.Mode[1]=CC
 Tasks.Par1[1]=0
@@ -68,7 +68,7 @@ Tasks.Tech[1]=DC
 Tasks.Label[1]=CH1:
 Tasks.Stdtech[1]=CyclicVoltamm
 Tasks.E[1]=0
-Tasks.I[1]=110
+Tasks.I[1]=22
 Tasks.t_pulse[1]=1
 Tasks.E_base[1]=1
 Tasks.I_base[1]=0.01
@@ -143,9 +143,9 @@ Tasks.IunitAmp[1]=A
 Tasks.IunitLimS[1]=A
 Tasks.IunitLimB[1]=A
 Tasks.Loop[2]=Single
-Tasks.Mode[2]=CC
+Tasks.Mode[2]=OCP
 Tasks.Par1[2]=0
-Tasks.End1[2]=E<
+Tasks.End1[2]=Timer>
 Tasks.End2[2]=select
 Tasks.End3[2]=select
 Tasks.End4[2]=select
@@ -155,10 +155,10 @@ Tasks.Option3[2]=select
 Tasks.Option4[2]=select
 Tasks.Cycles[2]=3
 Tasks.Tech[2]=DC
-Tasks.Label[2]=DCH1:
+Tasks.Label[2]=N:
 Tasks.Stdtech[2]=CyclicVoltamm
 Tasks.E[2]=0
-Tasks.I[2]=-110
+Tasks.I[2]=0
 Tasks.t_pulse[2]=1
 Tasks.E_base[2]=1
 Tasks.I_base[2]=0.01
@@ -180,14 +180,14 @@ Tasks.FreqEnd[2]=10
 Tasks.AmpE[2]=0.01
 Tasks.AmpI[2]=0.01
 Tasks.Nfreq[2]=5
-Tasks.Duration[2]=10
+Tasks.Duration[2]=120
 Tasks.OptionActive[2]=0
 Tasks.ThresActive[2]=0
-Tasks.Timer>[2]=10
+Tasks.Timer>[2]=120
 Tasks.I>[2]=0
 Tasks.I<[2]=0
 Tasks.E>[2]=1
-Tasks.E<[2]=3
+Tasks.E<[2]=1
 Tasks.Zabs>[2]=1
 Tasks.Zabs<[2]=1
 Tasks.An1>[2]=1
@@ -232,6 +232,96 @@ Tasks.IunitEnd[2]=A
 Tasks.IunitAmp[2]=A
 Tasks.IunitLimS[2]=A
 Tasks.IunitLimB[2]=A
+Tasks.Loop[3]=Single
+Tasks.Mode[3]=CC
+Tasks.Par1[3]=0
+Tasks.End1[3]=E<
+Tasks.End2[3]=select
+Tasks.End3[3]=select
+Tasks.End4[3]=select
+Tasks.Option1[3]=select
+Tasks.Option2[3]=select
+Tasks.Option3[3]=select
+Tasks.Option4[3]=select
+Tasks.Cycles[3]=3
+Tasks.Tech[3]=DC
+Tasks.Label[3]=DCH1:
+Tasks.Stdtech[3]=CyclicVoltamm
+Tasks.E[3]=0
+Tasks.I[3]=-22
+Tasks.t_pulse[3]=1
+Tasks.E_base[3]=1
+Tasks.I_base[3]=0.01
+Tasks.t_base[3]=1
+Tasks.Zapplied[3]=10
+Tasks.Papplied[3]=0.1
+Tasks.GotoLine[3]=1
+Tasks.GotoLabel[3]=goto CH1:
+Tasks.Counter[3]=select
+Tasks.OnThres[3]=On
+Tasks.Transform[3]=select
+Tasks.SelectLevel[3]=LoopIndex
+Tasks.E end[3]=1
+Tasks.Escanrate[3]=0.1
+Tasks.I end[3]=1
+Tasks.Iscanrate[3]=0.1
+Tasks.FreqStart[3]=10000
+Tasks.FreqEnd[3]=10
+Tasks.AmpE[3]=0.01
+Tasks.AmpI[3]=0.01
+Tasks.Nfreq[3]=5
+Tasks.Duration[3]=10
+Tasks.OptionActive[3]=0
+Tasks.ThresActive[3]=0
+Tasks.Timer>[3]=10
+Tasks.I>[3]=0
+Tasks.I<[3]=0
+Tasks.E>[3]=1
+Tasks.E<[3]=3
+Tasks.Zabs>[3]=1
+Tasks.Zabs<[3]=1
+Tasks.An1>[3]=1
+Tasks.An1<[3]=1
+Tasks.|dE/dt|>[3]=0.1
+Tasks.|dE/dt|<[3]=0.1
+Tasks.|dI/dt|>[3]=0.1
+Tasks.|dI/dt|<[3]=0.1
+Tasks.An2>[3]=1
+Tasks.An2<[3]=1
+Tasks.Temp>[3]=70
+Tasks.Q>[3]=1
+Tasks.Q<[3]=1
+Tasks.AnOut1[3]=1
+Tasks.DigOuts[3]=0
+Tasks.SetMux[3]=LoopIndex
+Tasks.ExitonThres[3]=On
+Tasks.SetTimer[3]=Start
+Tasks.spi out[3]=0
+Tasks.pc exec[3]=program.exe
+Tasks.Charge to Zero[3]=On
+Tasks.Eunit[3]=V
+Tasks.Iunit[3]=mA
+Tasks.dEdtunit[3]=V/s
+Tasks.dIdtunit[3]=A/s
+Tasks.Timeunit[3]=s
+Tasks.Frequnit[3]=Hz
+Tasks.Ohmunit[3]=ohm
+Tasks.Eunitplus[3]=V
+Tasks.Eunitplus2[3]=V vs Estart
+Tasks.Qunit[3]=Coul
+Tasks.QunitPlus[3]=Coul
+Tasks.Iunitplus[3]=A
+Tasks.PapplyUnit[3]=W
+Tasks.Duraunit[3]=s
+Tasks.FrequnitE[3]=Hz
+Tasks.EunitS[3]=V
+Tasks.dEdtunitE[3]=V/s
+Tasks.dIdtunitB[3]=A/s
+Tasks.dIdtunitS[3]=A/s
+Tasks.IunitEnd[3]=A
+Tasks.IunitAmp[3]=A
+Tasks.IunitLimS[3]=A
+Tasks.IunitLimB[3]=A
 Cycles=1
 Cycles separate=false
 Levels separate=false
