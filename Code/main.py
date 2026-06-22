@@ -255,7 +255,6 @@ def main() -> None:
     terminal_log_path = logs_folder/f"{timestamp}_{experiment_name}_terminal_log.txt"
     status_path = data_folder/"status"/"latest_status.txt"
 
-
     settings = ExperimentSettings(
         tasks=tasks,
         number_of_cycles=number_of_cycles,

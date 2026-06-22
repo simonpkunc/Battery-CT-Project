@@ -324,7 +324,7 @@ def run_battery_experiment(
                         print(f"Measured temperature was {temperature_c:.2f} °C")
 
                 if row_stop_reason == "" and terminal_escape_pressed():
-                    row_stop_reason = "manual_terminal_escape"
+                    row_stop_reason = "manual terminal escape."
                     print("Manual stop requested from terminal with Esc.")
 
                 if row_stop_reason == "" and elapsed >= settings.hard_timeout_s:
