@@ -1,9 +1,9 @@
 ## Instructions for the code
-This document describes the strucuture and purpouse of the code and how it is supposed to be used. The code is used to run battery cycling experiments with simultaneous potentiostat control, temperature monitoring, Tekscan pressure recording, data logging, safety features and remote status updates. It is composed of one main file and several sub files, each communicating with different components.
+This document describes the strucuture and purpouse of the code and how it is supposed to be used. The code is used to run battery cycling experiments with simultaneous potentiostat control, temperature monitoring, Tekscan pressure recording, data logging, safety features and remote status updates. It consists of one main script and several supporting modules, each communicating with different components.
 
-**Required softwares before running the code**
+**Required software before running the code**
 - IviumSoft.
-- IScan.
+- I-Scan.
 - Arduino IDE.
 
 **Required components before running the code**
@@ -16,14 +16,14 @@ This document describes the strucuture and purpouse of the code and how it is su
 **Required wiring**
 
 **Structure**\
-The folder *Code/* contains the Python code, configurations files and generated output folders.
+The folder *Code/* contains the Python code, configuration files and generated output folders.
 
 *Code/*\
 ├── Configuration/\
 ├── Data/\
 ├── Source/\
 ├── Instructions for the code.md\
-├── main.py\
+├── main.py
 
 **main.py**\
 This is the main entry point for running an experiment. It is responsible for:
@@ -42,7 +42,7 @@ The actual experiment loop is not written directly in *main.py*. Instead, *main.
 This folder contains files that define or support experiment configuration. It is intended for files that are needed before an experiment starts, such as Ivium method templates.
 
 *Configuration/*\
-├── ivium_cycle_template.imf\
+├── ivium_cycle_template.imf
 
 The most important file is *ivium_cycling_template.imf* which is used as a template when generating an Ivium method file for the requested charge/rest/discharge sequence. Once a method is generated, it is written to *Data/Generated_methods*.
 
@@ -52,9 +52,9 @@ This folder contains subfolders which contain outputs from an experiment.
 *Data/*\
 ├── Generated methods/\
 ├── Logs/\
-├── Status/\
+├── Status/
 
-In total, there are three subfolders. *Generated methods* contains the generated Ivium method for the experiment, *Logs* contains all the data from the experiment and *Status* contains the present status which the user can observe remotely.
+In total, there are three subfolders. *Generated methods* contains the generated Ivium method for the experiment, *Logs* contains all the data from the experiment and *Status* contains *latest_status.txt*, which can be used for remote monitoring during an experiment. Since these are generated during an experiment, they should not be pushed to GitHub.
 
 **Source**\
 This folder contains subfolders which contain the active source code used by the experiment.
@@ -63,7 +63,7 @@ This folder contains subfolders which contain the active source code used by the
 ├── Devices/\
 ├── Experiment/\
 ├── Logging/\
-├── Safety/\
+├── Safety/
 
 The source code is deivided by responsibility: 
 - *Devices/* contains hardware and interface code.
@@ -79,9 +79,9 @@ This folder contains code that communicates with external devices or software.
 ├── emailinfo.env\
 ├── ivium_driver.py\
 ├── tekscan_driver.py\
-├── tempmoni.py\
+├── tempmoni.py
 
-*emailinfo.env* is a file containing the emailinformation for the email that recievs a warningmail if something goes wrong.
+*emailinfo.env* is a file containing the emailinformation for the email that recievs a warningmail if something goes wrong. This is local and should not be pushed to GitHub.
 
 *ivium_driver.py* is the file that handles communication with  Ivium potentiostat thorugh the Ivium DLL. It is responsible for
 - opening and connecting to the potentiostat.
@@ -147,3 +147,13 @@ This folder is reserved for safety-realted code and documentation. The active sa
 - cleanup and shutdown after stop.
 
 This folder may later be used if the safety logic is removed into a separate module.
+
+**Main workflow**\
+1) The user starts main.py.
+2) The user enters experiment settings.
+3) main.py creates the experiment settings and file paths.
+4) cycling_experiment.py generates the Ivium method file.
+5) The Ivium method, temperature monitor and Tekscan recording are started.
+6) Voltage, current, temperature and status are logged during the experiment.
+7) The experiment stops when a stop condition is reached.
+8) Ivium and Tekscan are shut down safely.
