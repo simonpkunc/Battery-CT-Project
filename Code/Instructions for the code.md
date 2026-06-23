@@ -148,7 +148,7 @@ This folder is reserved for safety-realted code and documentation. The active sa
 
 This folder may later be used if the safety logic is removed into a separate module.
 
-**Main workflow**\
+**Main workflow**
 1) The user starts main.py.
 2) The user enters experiment settings.
 3) main.py creates the experiment settings and file paths.
