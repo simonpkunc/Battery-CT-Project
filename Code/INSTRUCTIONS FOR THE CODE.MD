@@ -136,4 +136,14 @@ This folder contains a file (*status_logger.py*) with code used for live monitor
 The latest *latest_status.txt* file is intended for remote monitoring through OneDrive.
 
 *Source/Safety/*\
-This folder is reserved for safety-realted code and documentation. The active safety checks are currently implemented inside *cycling_experiment.py*. The current safety mechanisms include  
+This folder is reserved for safety-realted code and documentation. The active safety checks are currently implemented inside *cycling_experiment.py*. The current safety mechanisms include
+- maximum voltage limit.
+- minimum voltage limit.
+- maximum current limit.
+- minimum current limit.
+- maximum temperature limit.
+- manual stop using *Esc* in the terminal.
+- manual abort detection from IviumSoft.
+- cleanup and shutdown after stop.
+
+This folder may later be used if the safety logic is removed into a separate module.
