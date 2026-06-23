@@ -422,8 +422,8 @@ def run_battery_experiment(
 
         try:
             status_logger.write_status(
-                force = True,
-                state="stopped",
+                force=True,
+                state="Stopping and cleaning up",
                 elapsed_time_s="" if latest_elapsed_s is None else f"{latest_elapsed_s:.1f}",
                 potential_v="" if latest_voltage_v is None else f"{latest_voltage_v:.6f}",
                 current_a="" if latest_current_a is None else f"{latest_current_a:.9f}",
