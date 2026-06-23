@@ -10,3 +10,4 @@ Code/Data/logs/
 Code/Data/status/
 __pycache__/
 Logbook/
+*.zip
