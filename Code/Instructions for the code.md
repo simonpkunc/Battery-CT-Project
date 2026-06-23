@@ -124,7 +124,17 @@ This folder contains the main experiment logic.
 - detecting manual stop requests.
 - shutting down Ivium and Tekscan safely.
 
-The main function in this file is *run_battery_experiment(...)* where the loop continues until one of the stop conditions is reached.
+The active safety checks are currently implemented inside *cycling_experiment.py*. The current safety mechanisms include
+- maximum voltage limit.
+- minimum voltage limit.
+- maximum current limit.
+- minimum current limit.
+- maximum temperature limit.
+- manual stop using *Esc* in the terminal.
+- manual abort detection from IviumSoft.
+- cleanup and shutdown after stop.
+
+The main function in this file is *run_battery_experiment(...)* where the loop continues until one of the stop conditions is reached. 
 
 *Source/Logging/*\
 This folder contains a file (*status_logger.py*) with code used for live monitoring and terminal logging. It is responsible for
