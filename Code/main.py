@@ -26,12 +26,20 @@ def ask_int(prompt: str, default: int) -> int:
 
 def ask_yes_no(prompt: str, default: bool = False) -> bool:
     default_text = "y" if default else "n"
-    user_input = input(f"{prompt} [y/n, default {default_text}]: ").strip().lower()
 
-    if user_input == "":
-        return default
+    while True:
+        user_input = input(f"{prompt} [y/n, default {default_text}]: ").strip().lower()
 
-    return user_input in ("y", "yes", "j", "ja")
+        if user_input == "":
+            return default
+
+        if user_input in ("y", "yes", "j", "ja"):
+            return True
+
+        if user_input in ("n", "no", "nej"):
+            return False
+
+        print("Invalid answer. Use 'y' or 'n'.")
 
 def ask_task_type(task_number: int, default: str) -> str:
     while True:
@@ -88,7 +96,7 @@ def build_tasks_from_user_input() -> list[IviumCycleTask]:
     if number_of_tasks < 1:
         raise ValueError("Number of tasks must be at least 1.")
 
-    tasks = []
+    tasks: list[IviumCycleTask] = []
 
     print()
     print("Define tasks")
@@ -184,10 +192,10 @@ def main() -> None:
     print("- IviumSoft shows approximately the same voltage as the multimeter.")
     print("- Arduino Serial Monitor is closed.")
     print("- The battery/dummy load is connected correctly.")
-    print("- I-Scan is opened and the correct files for calibration equilibration are loaded.")
+    print("- If Tekscan is used: I-Scan is open and the correct calibration/equilibration files are loaded.")
     print()
 
-    run_setup = ask_yes_no("Start experiment?", default=True)
+    run_setup = ask_yes_no("Continue to experiment setup?", default=True)
 
     if not run_setup:
         print("Experiment cancelled.")
@@ -235,24 +243,21 @@ def main() -> None:
         print()
         input("Press Enter when I-Scan is ready...")
 
-    code_folder = Path(__file__).resolve().parent
-
-    config_folder = code_folder / "Configuration"
-    data_folder = code_folder / "Data"
-
     generated_methods_folder = data_folder / "generated_methods"
     logs_folder = data_folder / "logs"
+    status_folder = data_folder / "status"
 
     generated_methods_folder.mkdir(parents=True, exist_ok=True)
     logs_folder.mkdir(parents=True, exist_ok=True)
+    status_folder.mkdir(parents=True, exist_ok=True)
 
     template_method_path = config_folder / "ivium_cycle_template.imf"
     generated_method_path = generated_methods_folder / "generated_ivium_cycle.imf"
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    log_path = logs_folder/f"{timestamp}_{experiment_name}.csv"
-    terminal_log_path = logs_folder/f"{timestamp}_{experiment_name}_terminal_log.txt"
-    status_path = data_folder/"status"/"latest_status.txt"
+    log_path = logs_folder / f"{timestamp}_{experiment_name}.csv"
+    terminal_log_path = logs_folder / f"{timestamp}_{experiment_name}_terminal_log.txt"
+    status_path = status_folder / "latest_status.txt"
 
     settings = ExperimentSettings(
         tasks=tasks,
@@ -266,7 +271,8 @@ def main() -> None:
         temperature_baud=temperature_baud,
         max_temperature_c=max_temperature_c,
         use_tekscan=use_tekscan,
-        log_name=log_path.name,)
+        log_name=log_path.name,
+        )
 
     print()
     print("Experiment summary")
@@ -295,7 +301,7 @@ def main() -> None:
             print(f"  End condition:            E < {task.voltage_limit_v} V")
 
         elif task.task_type == "rest":
-            print(f"  Mode:                     OCP / rest")
+            print("  Mode:                     OCP / rest")
             print(f"  Duration:                 {task.duration_s} s")
 
         print()
