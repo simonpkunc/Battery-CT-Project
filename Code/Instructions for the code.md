@@ -153,4 +153,4 @@ The latest *latest_status.txt* file is intended for remote monitoring through On
 5) The Ivium method, temperature monitor and Tekscan recording are started.
 6) Voltage, current, temperature and status are logged during the experiment.
 7) The experiment stops when a stop condition is reached.
-8) Ivium and Tekscan are shut down safely.
+8) Ivium and Tekscan are shut down safel.
