@@ -5,9 +5,9 @@
 emailinfo.env
 Code/emailinfo.env
 *.pyc
-Code/Data/generated_methods/
-Code/Data/logs/
-Code/Data/status/
+Code/Data/Generated methods/
+Code/Data/Logs/
+Code/Data/Status/
 __pycache__/
 Logbook/
 *.zip
