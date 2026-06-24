@@ -31,7 +31,7 @@ def read_env_file(env_path: str | Path) -> dict[str, str]:
     """
     env_path = Path(env_path)
 
-    if not env_path.existst():
+    if not env_path.exists():
         raise FileNotFoundError(f"Could not find email settings file: {env_path}")
     
     values: dict[str, str] = {}
