@@ -52,13 +52,14 @@ def run_battery_experiment(
     template_method_path: str,
     generated_method_path: str,
     log_path: str,
+    status_path: str,
 ) -> None:
     template_method_path = str(Path(template_method_path).resolve())
     generated_method_path = str(Path(generated_method_path).resolve())
     log_path = Path(log_path).resolve()
     log_path.parent.mkdir(parents=True, exist_ok=True)
 
-    status_path = log_path.parent.parent/"status"/"latest_status.txt"
+    status_path = Path(status_path).resolve()
     terminal_log_path = log_path.with_name(log_path.stem + "_terminal_log.txt")
 
     status_logger = ExperimentStatusLogger(status_path)
