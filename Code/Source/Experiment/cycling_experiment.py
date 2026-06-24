@@ -5,6 +5,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from Source.Logging.status_logger import ExperimentStatusLogger
 
+from Source.Logging.email_notifier import (
+    load_email_settings,
+    send_safety_alert_email,
+)
+
 from Source.Devices.ivium_driver import (
     IviumDriver,
     create_cycle_imf,
@@ -13,6 +18,14 @@ from Source.Devices.ivium_driver import (
 )
 from Source.Devices.tempmoni import TemperatureMonitor
 from Source.Devices.tekscan_driver import TekscanDriver
+
+SAFETY_STOP_REASONS = {
+    "max_voltage_safety_limit",
+    "min_voltage_safety_limit",
+    "current_safety_limit",
+    "temperature_safety_limit",
+    "hard_timeout",
+}
 
 @dataclass
 class ExperimentSettings:
@@ -31,6 +44,9 @@ class ExperimentSettings:
     max_temperature_c: float | None = None
 
     use_tekscan: bool = False
+
+    use_email_alerts: bool = False
+    email_settings_path: str | None = None
 
     log_name: str = "experiment_log.csv"
 
@@ -63,6 +79,19 @@ def run_battery_experiment(
     terminal_log_path = log_path.with_name(log_path.stem + "_terminal_log.txt")
 
     status_logger = ExperimentStatusLogger(status_path)
+
+    email_settings = None
+    email_alert_sent = False
+
+    if settings.use_email_alerts:
+        if settings.email_settings_path is None:
+            raise ValueError(
+                "Email alerts are enabled, but no email settings path was provided."
+            )
+
+        email_settings = load_email_settings(settings.email_settings_path)
+        print("Safety alert emails are enabled.")
+        print(f"Email settings file: {settings.email_settings_path}")
 
     status_logger.write_status(
         force = True,
@@ -169,6 +198,45 @@ def run_battery_experiment(
     latest_cell_status = None
     latest_status_parameter = None
     latest_tekscan_status = "off"
+
+    def send_safety_email_if_needed(reason: str) -> None:
+        nonlocal email_alert_sent
+
+        if reason not in SAFETY_STOP_REASONS:
+            return
+        
+        if email_alert_sent is None:
+            return
+        
+        if email_settings is None:
+            return
+        
+        details = {
+            "Elapsed time [s]": "" if latest_elapsed_s is None else f"{latest_elapsed_s:.1f}",
+            "Potential [V]": "" if latest_voltage_v is None else f"{latest_voltage_v:.6f}",
+            "Current [A]": "" if latest_current_a is None else f"{latest_current_a:.9f}",
+            "Temperature [deg C]": "" if latest_temperature_c is None else f"{latest_temperature_c:.2f}",
+            "Device status": latest_device_status,
+            "Cell status": latest_cell_status,
+            "Status parameter": latest_status_parameter,
+            "Tekscan recording": "on" if tekscan_recording_started else "off",
+            "CSV log": log_path,
+            "Terminal log": terminal_log_path,
+            "Status file": status_path,
+        }
+
+        try:
+            send_safety_alert_email(
+                email_settings=email_settings,
+                stop_reason=reason,
+                details=details,
+            )
+            email_alert_sent = True
+            print("Safety alert email sent.")
+
+        except Exception as e:
+            email_alert_sent = True
+            print(f"Safety alert email failed: {e}")
 
     try:
         result = ivium.open()
@@ -400,6 +468,8 @@ def run_battery_experiment(
                 if row_stop_reason != "":
                     print("STOP DETECTED IN LOOP")
                     print(f"Stop reason in loop: {row_stop_reason}")
+
+                    send_safety_email_if_needed(row_stop_reason)
 
                     if row_stop_reason == "ivium_method_completed_or_aborted":
                         print("Ivium already stopped or manually aborted. Stopping Tekscan now.")

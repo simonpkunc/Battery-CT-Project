@@ -248,6 +248,23 @@ def main() -> None:
     code_folder = Path(__file__).resolve().parent
 
     config_folder = code_folder / "Configuration"
+    use_email_alerts = ask_yes_no(
+        "Send email if a safety limit stops the experiment?",
+        default=False,
+    )
+
+    email_settings_path = None
+
+    if use_email_alerts:
+        email_settings_path = config_folder / "emailinfo.env"
+
+        print()
+        print("Email alert settings")
+        print("====================")
+        print(f"Email settings file: {email_settings_path}")
+        print("Make sure this file exists and is not committed to Git.")
+        print()
+
     if CUSTOM_DATA_FOLDER is None:
         data_folder = code_folder / "Data"
     else:
@@ -283,6 +300,8 @@ def main() -> None:
         temperature_baud=temperature_baud,
         max_temperature_c=max_temperature_c,
         use_tekscan=use_tekscan,
+        use_email_alerts=use_email_alerts,
+        email_settings_path=None if email_settings_path is None else str(email_settings_path),
         log_name=log_path.name,
         )
     
@@ -313,6 +332,8 @@ def main() -> None:
         file.write(f"Maximum safe current [A]: {settings.max_safe_current_a}\n")
         file.write(f"Temperature port: {settings.temperature_port}\n")
         file.write(f"Temperature baud: {settings.temperature_baud}\n")
+        file.write(f"Use email alerts: {settings.use_email_alerts}\n")
+        file.write(f"Email settings path: {settings.email_settings_path}\n")
         file.write(f"Use Tekscan: {settings.use_tekscan}\n")
         file.write("\n")
 
@@ -364,6 +385,7 @@ def main() -> None:
     print(f"Maximum safe current:        {settings.max_safe_current_a} A")
     print(f"Temperature port:            {settings.temperature_port}")
     print(f"Use Tekscan recording:       {settings.use_tekscan}")
+    print(f"Use email safety alerts:    {settings.use_email_alerts}")
     print(f"Template method:             {template_method_path}")
     print(f"Generated method:            {generated_method_path}")
     print(f"Log file:                    {log_path}")
