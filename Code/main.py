@@ -248,21 +248,23 @@ def main() -> None:
     config_folder = code_folder / "Configuration"
     data_folder = code_folder / "Data"
 
-    generated_methods_folder = data_folder / "generated_methods"
-    logs_folder = data_folder / "logs"
-    status_folder = data_folder / "status"
+    generated_methods_folder = data_folder / "Generated methods"
+    logs_folder = data_folder / "Logs"
+    status_folder = data_folder / "Status"
 
     generated_methods_folder.mkdir(parents=True, exist_ok=True)
     logs_folder.mkdir(parents=True, exist_ok=True)
     status_folder.mkdir(parents=True, exist_ok=True)
 
     template_method_path = config_folder / "ivium_cycle_template.imf"
-    generated_method_path = generated_methods_folder / "generated_ivium_cycle.imf"
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    generated_method_path = generated_methods_folder / f"{timestamp}_{experiment_name}_generated_ivium_cycle.imf"
     log_path = logs_folder / f"{timestamp}_{experiment_name}.csv"
     terminal_log_path = logs_folder / f"{timestamp}_{experiment_name}_terminal_log.txt"
     status_path = status_folder / "latest_status.txt"
+    settings_path = logs_folder / f"{timestamp}_{experiment_name}_settings.txt"
 
     settings = ExperimentSettings(
         tasks=tasks,
@@ -278,6 +280,43 @@ def main() -> None:
         use_tekscan=use_tekscan,
         log_name=log_path.name,
         )
+    
+    with open(settings_path, "w", encoding="utf-8") as file:
+        file.write("Battery CT experiment settings\n")
+        file.write("==============================\n")
+        file.write(f"Experiment name: {experiment_name}\n")
+        file.write(f"Timestamp: {timestamp}\n")
+        file.write("\n")
+
+        file.write("Tasks\n")
+        file.write("-----\n")
+
+    for i, task in enumerate(settings.tasks, start=1):
+        file.write(f"Task {i}\n")
+        file.write(f"  Type: {task.task_type}\n")
+        file.write(f"  Current [mA]: {task.current_mA}\n")
+        file.write(f"  Voltage limit [V]: {task.voltage_limit_v}\n")
+        file.write(f"  Duration [s]: {task.duration_s}\n")
+        file.write("\n")
+
+    file.write("General settings\n")
+    file.write("----------------\n")
+    file.write(f"Number of cycles: {settings.number_of_cycles}\n")
+    file.write(f"Maximum temperature [deg C]: {settings.max_temperature_c}\n")
+    file.write(f"Maximum safe voltage [V]: {settings.max_safe_voltage_v}\n")
+    file.write(f"Minimum safe voltage [V]: {settings.min_safe_voltage_v}\n")
+    file.write(f"Maximum safe current [A]: {settings.max_safe_current_a}\n")
+    file.write(f"Temperature port: {settings.temperature_port}\n")
+    file.write(f"Temperature baud: {settings.temperature_baud}\n")
+    file.write(f"Use Tekscan: {settings.use_tekscan}\n")
+    file.write("\n")
+
+    file.write("Output files\n")
+    file.write("------------\n")
+    file.write(f"Generated Ivium method: {generated_method_path}\n")
+    file.write(f"CSV log: {log_path}\n")
+    file.write(f"Terminal log: {terminal_log_path}\n")
+    file.write(f"Latest status file: {status_path}\n")
 
     print()
     print("Experiment summary")
@@ -286,7 +325,8 @@ def main() -> None:
     print(f"Number of tasks in cycle:    {len(settings.tasks)}")
     print(f"Number of cycles:            {settings.number_of_cycles}")
     print(f"Terminal log file:           {terminal_log_path}")
-    print(f"Latest status file:          {status_path}") 
+    print(f"Latest status file:          {status_path}")
+    print(f"Settings file:               {settings_path}")
     print()
 
     for i, task in enumerate(settings.tasks, start=1):
@@ -338,10 +378,11 @@ def main() -> None:
 
     with mirror_stdout_to_file(terminal_log_path):
         run_battery_experiment(
-            settings = settings,
-            template_method_path = str(template_method_path),
-            generated_method_path = str(generated_method_path),
-            log_path = str(log_path),
+            settings=settings,
+            template_method_path=str(template_method_path),
+            generated_method_path=str(generated_method_path),
+            log_path=str(log_path),
+            status_path=str(status_path),
         )
 
 if __name__ == "__main__":
