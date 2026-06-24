@@ -1,110 +1,122 @@
-import subprocess
 import time
+from dataclasses import dataclass
 
+
+@dataclass
 class TekscanDriver:
     """
-    Simple Tekscan I-Scan controller.
+    Basic automation driver for Tekscan I-Scan.
 
-    This does not read force data directly.
-    It activates I-Scan and sends keyboard shortcuts.
+    This driver does not read pressure data directly.
+    It only sends keyboard commands to I-Scan.
 
-    Requirements:
-    - I-Scan must already be open.
-    - The correct sensor/map must be selected.
-    - A New Recording / real-time window must already be open.
-
-    Shortcuts:
-    F2 = start recording
-    F4 = stop recording / stop playback
-    Ctrl+R = alternative start recording
-    Ctrl+T = alternative stop/play-stop
+    Expected I-Scan setup before use:
+    - I-Scan is open.
+    - The correct sensor/map is selected.
+    - A New Recording / real-time window is open.
+    - The real-time window is active, or can be found by window title.
+    - F2 starts recording.
+    - F4 stops recording.
     """
 
-    def __init__(
-        self,
-        window_title: str = "I-Scan",
-        focus_delay_s: float = 1.0,
-    ):
-        self.window_title = window_title
-        self.focus_delay_s = focus_delay_s
+    window_title_keywords: tuple[str, ...] = (
+        "I-Scan",
+        "IScan",
+        "Tekscan",
+        "TekScan",
+    )
 
-    def _send_key_with_powershell(self, key: str) -> None:
-        delay_ms = int(self.focus_delay_s * 1000)
+    activate_window_before_command: bool = True
+    activation_delay_s: float = 0.5
+    key_delay_s: float = 0.2
 
-        command = f"""
-$wshell = New-Object -ComObject WScript.Shell
-
-$proc = Get-Process | Where-Object {{
-    $_.ProcessName -like 'iscan*'
-}} | Select-Object -First 1
-
-if ($proc -ne $null) {{
-    $success = $wshell.AppActivate($proc.Id)
-}} else {{
-    $success = $wshell.AppActivate('{self.window_title}')
-}}
-
-Start-Sleep -Milliseconds {delay_ms}
-
-if (-not $success) {{
-    Write-Output 'Could not activate I-Scan window.'
-    exit 2
-}}
-
-$wshell.SendKeys('{key}')
-Start-Sleep -Milliseconds 300
-"""
-        result = subprocess.run(
-            [
-                "powershell",
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-Command",
-                command,
-            ],
-            capture_output=True,
-            text=True,
-        )
-
-        if result.stdout.strip():
-            print(result.stdout.strip())
-
-        if result.stderr.strip():
-            print(result.stderr.strip())
-
-        if result.returncode != 0:
-            raise RuntimeError(
-                f"Failed to send key {key} to I-Scan. "
-                f"PowerShell return code: {result.returncode}"
-            )
-
-        time.sleep(0.3)
+    start_key: str = "f2"
+    stop_key: str = "f4"
 
     def start_recording(self) -> None:
-        print("Starting Tekscan recording with F2...")
-        self._send_key_with_powershell("{F2}")
+        """
+        Start I-Scan recording by sending F2.
+        """
+        self._send_key_to_iscan(self.start_key)
 
     def stop_recording(self) -> None:
-        print("Stopping Tekscan recording with robust stop sequence...")
+        """
+        Stop I-Scan recording by sending F4.
+        """
+        self._send_key_to_iscan(self.stop_key)
 
-        # Important when IviumSoft was just clicked manually.
-        time.sleep(1.2)
+    def _send_key_to_iscan(self, key: str) -> None:
+        """
+        Activate I-Scan if possible and send one keyboard key.
+        """
+        pyautogui = self._require_pyautogui()
 
-        stop_keys = [
-            "{F4}",
-            "{F4}",
-            "^t",
-            "{F4}",
-        ]
+        if self.activate_window_before_command:
+            self._activate_iscan_window_if_possible()
 
-        for key in stop_keys:
-            print(f"Sending Tekscan stop key: {key}")
-            self._send_key_with_powershell(key)
-            time.sleep(0.6)
+        pyautogui.press(key)
+        time.sleep(self.key_delay_s)
 
-        print("Tekscan stop sequence finished.")
+    def _activate_iscan_window_if_possible(self) -> bool:
+        """
+        Try to activate the I-Scan window.
 
-    def take_snapshot(self) -> None:
-        print("Taking Tekscan snapshot with F3...")
-        self._send_key_with_powershell("{F3}")
+        Returns True if a matching window was found and activation was attempted.
+        Returns False if pygetwindow is unavailable or if no matching window is found.
+
+        This function is intentionally non-critical. The experiment should still be
+        able to run if the user has already made the correct I-Scan window active.
+        """
+        try:
+            import pygetwindow as gw
+        except ImportError:
+            return False
+
+        try:
+            windows = gw.getAllWindows()
+        except Exception:
+            return False
+
+        for window in windows:
+            title = window.title or ""
+
+            if self._title_matches_iscan(title):
+                try:
+                    if window.isMinimized:
+                        window.restore()
+
+                    window.activate()
+                    time.sleep(self.activation_delay_s)
+                    return True
+
+                except Exception:
+                    return False
+
+        return False
+
+    def _title_matches_iscan(self, title: str) -> bool:
+        """
+        Check whether a window title looks like an I-Scan/Tekscan window.
+        """
+        title_lower = title.lower()
+
+        for keyword in self.window_title_keywords:
+            if keyword.lower() in title_lower:
+                return True
+
+        return False
+
+    @staticmethod
+    def _require_pyautogui():
+        """
+        Import pyautogui only when a keyboard command is actually needed.
+        """
+        try:
+            import pyautogui
+        except ImportError as exc:
+            raise RuntimeError(
+                "pyautogui is required to control Tekscan I-Scan. "
+                "Install it with: pip install pyautogui"
+            ) from exc
+
+        return pyautogui
