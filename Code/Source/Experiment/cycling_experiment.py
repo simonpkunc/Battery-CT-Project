@@ -357,7 +357,6 @@ def run_battery_experiment(
                 latest_cell_status = cell_status
                 latest_status_parameter = status_parameter
                 latest_tekscan_status = tekscan_status
-                latest_stop_reason = row_stop_reason
 
                 status_logger.write_status(
                     state=status_state,
