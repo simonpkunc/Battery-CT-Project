@@ -98,7 +98,6 @@ def run_battery_experiment(
         port=settings.temperature_port,
         baud=settings.temperature_baud,
         timeout_s=0.5,
-        email_enabled=False,
     )
     temperature_monitor.open()
     print(f"Temperature monitor opened on {settings.temperature_port}")
@@ -161,6 +160,15 @@ def run_battery_experiment(
             print(f"Connection mode off failed: {e}")
 
         ivium_shutdown_sent = True
+
+    latest_elapsed_s = None
+    latest_voltage_v = None
+    latest_current_a = None
+    latest_temperature_c = None
+    latest_device_status = None
+    latest_cell_status = None
+    latest_status_parameter = None
+    latest_tekscan_status = "off"
 
     try:
         result = ivium.open()
@@ -254,16 +262,6 @@ def run_battery_experiment(
                 ]
             )
             file.flush()
-
-            latest_elapsed_s = None
-            latest_voltage_v = None
-            latest_current_a = None
-            latest_temperature_c = None
-            latest_device_status = None
-            latest_cell_status = None
-            latest_status_parameter = None
-            latest_tekscan_status = None
-            latest_stop_reason = ""
 
             while True:
                 elapsed = time.time() - start_time
@@ -481,7 +479,7 @@ def run_battery_experiment(
                 min_safe_voltage_v=settings.min_safe_voltage_v,
                 max_safe_current_a=settings.max_safe_current_a,
                 tekscan_enabled=settings.use_tekscan,
-                tekscan_recording=latest_tekscan_status,
+                tekscan_recording="on" if tekscan_recording_started else "off",
                 csv_log=log_path,
                 terminal_log=terminal_log_path,
                 stop_reason=stop_reason,

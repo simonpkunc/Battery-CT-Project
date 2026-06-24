@@ -3,7 +3,8 @@ from pathlib import Path
 from Source.Devices.ivium_driver import IviumCycleTask
 from Source.Experiment.cycling_experiment import (
     ExperimentSettings,
-    run_battery_experiment,)
+    run_battery_experiment,
+)
 from Source.Logging.status_logger import mirror_stdout_to_file
 
 NOMINAL_CAPACITY_MAH = 110.0
