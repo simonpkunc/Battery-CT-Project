@@ -243,6 +243,11 @@ def main() -> None:
         print()
         input("Press Enter when I-Scan is ready...")
 
+    code_folder = Path(__file__).resolve().parent
+
+    config_folder = code_folder / "Configuration"
+    data_folder = code_folder / "Data"
+
     generated_methods_folder = data_folder / "generated_methods"
     logs_folder = data_folder / "logs"
     status_folder = data_folder / "status"
