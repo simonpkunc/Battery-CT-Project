@@ -207,7 +207,8 @@ def send_safety_alert_email(
 
     lines = [
         "Battery CT experiment safety alert!",
-        "==================================",
+        "",
+        "=======================",
         "",
         f"Time: {now}",
         f"Stop reason: {stop_reason}",
@@ -219,7 +220,7 @@ def send_safety_alert_email(
         lines.append(f"- {key}: {value}")
 
     lines.append("")
-    lines.append("The experiment control code has detected a safety stop condition")
+    lines.append("The experiment control code has detected a safety stop condition.")
 
     body = "\n".join(lines)
 
