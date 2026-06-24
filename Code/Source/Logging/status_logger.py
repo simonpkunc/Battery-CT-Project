@@ -1,10 +1,33 @@
 from __future__ import annotations
+
 import sys
 import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import TextIO
+
+
+FIELDS_WITH_PERIOD = (
+    "state",
+    "elapsed_time_s",
+    "potential_v",
+    "current_a",
+    "temperature_c",
+    "device_status",
+    "cell_status",
+    "status_parameter",
+    "requested_tasks",
+    "requested_cycles",
+    "max_temperature_c",
+    "max_safe_voltage_v",
+    "min_safe_voltage_v",
+    "max_safe_current_a",
+    "tekscan_enabled",
+    "tekscan_recording",
+    "stop_reason",
+)
+
 
 class TeeStream:
     """
@@ -70,9 +93,9 @@ def mirror_stdout_to_file(log_path: str | Path):
 
 class ExperimentStatusLogger:
     """
-    Writes a small status file that can be viewed remotely, for example via OneDrive.
+    Writes a small status file that can be viewed remotely, for example via Google Drive.
 
-    To avoid overwhelming OneDrive, normal status updates are written at most
+    To avoid overwhelming the sync client, normal status updates are written at most
     once every min_write_interval_s seconds. Important updates can be forced.
     """
 
@@ -85,7 +108,10 @@ class ExperimentStatusLogger:
     def write_status(self, force: bool = False, **fields) -> None:
         now_monotonic = time.monotonic()
 
-        if not force and (now_monotonic - self._last_write_time) < self.min_write_interval_s:
+        if (
+            not force
+            and (now_monotonic - self._last_write_time) < self.min_write_interval_s
+        ):
             return
 
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -105,25 +131,7 @@ class ExperimentStatusLogger:
             else:
                 value_text = str(value)
 
-            if key in (
-                "state",
-                "elapsed_time_s",
-                "potential_v",
-                "current_a",
-                "temperature_c",
-                "device_status",
-                "cell_status",
-                "status_parameter",
-                "requested_tasks",
-                "requested_cycles",
-                "max_temperature_c",
-                "max_safe_voltage_v",
-                "min_safe_voltage_v",
-                "max_safe_current_a",
-                "tekscan_enabled",
-                "tekscan_recording",
-                "stop_reason",
-            ) and value_text != "":
+            if key in FIELDS_WITH_PERIOD and value_text != "":
                 value_text = value_text.rstrip(".") + "."
 
             lines.append(f"{label}: {value_text}")

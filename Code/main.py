@@ -7,6 +7,7 @@ from Source.Experiment.cycling_experiment import (
 from Source.Logging.status_logger import mirror_stdout_to_file
 
 NOMINAL_CAPACITY_MAH = 110.0
+CUSTOM_DATA_FOLDER = None
 
 def ask_float(prompt: str, default: float) -> float:
     user_input = input(f"{prompt} [{default}]: ").strip()
@@ -246,7 +247,10 @@ def main() -> None:
     code_folder = Path(__file__).resolve().parent
 
     config_folder = code_folder / "Configuration"
-    data_folder = code_folder / "Data"
+    if CUSTOM_DATA_FOLDER is None:
+        data_folder = code_folder / "Data"
+    else:
+        data_folder = Path(CUSTOM_DATA_FOLDER)
 
     generated_methods_folder = data_folder / "Generated methods"
     logs_folder = data_folder / "Logs"
