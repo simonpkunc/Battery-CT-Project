@@ -203,7 +203,7 @@ def send_safety_alert_email(
     """
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    subject = f"{email_settings.subject_prefix}: {stop_reason}"
+    subject = f"{email_settings.subject_prefix}"
 
     lines = [
         "Battery CT experiment safety alert!",
