@@ -170,7 +170,7 @@ def send_email(
     if email_settings.smtp_port == 465:
         with smtplib.SMTP_SSL(
             email_settings.smtp_server,
-            email_settings.smtp_sort,
+            email_settings.smtp_port,
             context=context,
             timeout=email_settings.timeout_s,
         ) as server:
